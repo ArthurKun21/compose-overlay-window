@@ -1,6 +1,13 @@
 name: build app
 
 on:
+  pull_request:
+    paths-ignore:
+      - '.idea/**'
+      - 'preview/**'
+      - 'jitpack.yml'
+      - '*.md'
+      - '.gitignore'
   workflow_dispatch:
 
 env:
