@@ -17,6 +17,7 @@ import androidx.compose.runtime.Recomposer
 import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.compositionContext
+import androidx.core.view.isNotEmpty
 import androidx.lifecycle.HasDefaultViewModelProviderFactory
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleRegistry
@@ -111,8 +112,8 @@ class ComposeFloatingWindow(
         })
     }
 
-    fun setContentView(view: View) {
-        if (decorView.childCount > 0) {
+    private fun setContentView(view: View) {
+        if (decorView.isNotEmpty()) {
             decorView.removeAllViews()
         }
         decorView.addView(view)
@@ -121,7 +122,7 @@ class ComposeFloatingWindow(
 
     fun show() {
         if (isAvailable().not()) return
-        require(decorView.childCount != 0) {
+        require(decorView.isNotEmpty()) {
             "Content view cannot be empty"
         }
         if (showing) {
