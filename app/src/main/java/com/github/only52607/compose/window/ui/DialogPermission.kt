@@ -18,7 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.github.only52607.compose.window.R
+import com.github.only52607.compose.window.app.R
 
 @Composable
 fun DialogPermission(
