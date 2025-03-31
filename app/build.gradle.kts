@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.github.only52607.compose.window"
-    compileSdk = 34
+    compileSdk = ibs.versions.compile.sdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.github.only52607.compose.window"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = libs.versions.min.sdk.get().toInt()
+        targetSdk = libs.versions.target.sdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
 

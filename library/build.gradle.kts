@@ -6,10 +6,10 @@ plugins {
 
 android {
     namespace = "com.github.only52607.compose.window"
-    compileSdk = 34
+    compileSdk = ibs.versions.compile.sdk.get().toInt()
 
     defaultConfig {
-        minSdk = 24
+        minSdk = libs.versions.min.sdk.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
