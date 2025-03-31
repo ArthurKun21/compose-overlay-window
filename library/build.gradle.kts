@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.github.only52607.compose.window"
-    compileSdk = ibs.versions.compile.sdk.get().toInt()
+    compileSdk = libs.versions.compile.sdk.get().toInt()
 
     defaultConfig {
         minSdk = libs.versions.min.sdk.get().toInt()
@@ -55,7 +55,7 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 
-    implementation(libs.android.core.ktx)
+    implementation(libs.androidx.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.google.material)
     testImplementation(libs.junit)
