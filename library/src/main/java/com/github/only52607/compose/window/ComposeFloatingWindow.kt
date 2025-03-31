@@ -91,11 +91,13 @@ class ComposeFloatingWindow(
     override val viewModelStore: ViewModelStore = ViewModelStore()
 
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
-    override val lifecycle: Lifecycle get() = lifecycleRegistry
+    override val lifecycle: Lifecycle
+        get() = lifecycleRegistry
 
     private var savedStateRegistryController: SavedStateRegistryController =
         SavedStateRegistryController.create(this)
-    override val savedStateRegistry: SavedStateRegistry get() = savedStateRegistryController.savedStateRegistry
+    override val savedStateRegistry: SavedStateRegistry
+        get() = savedStateRegistryController.savedStateRegistry
 
     private var _showing = MutableStateFlow(false)
 
