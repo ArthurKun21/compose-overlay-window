@@ -1,4 +1,4 @@
-package com.github.only52607.compose.window
+package com.github.only52607.compose.window.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -17,9 +17,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.github.only52607.compose.window.ui.DialogPermission
-import com.github.only52607.compose.window.ui.FloatingWindowContent
-import com.github.only52607.compose.window.ui.theme.ComposeFloatingWindowTheme
+import com.github.only52607.compose.window.ComposeFloatingWindow
+import com.github.only52607.compose.window.app.ui.DialogPermission
+import com.github.only52607.compose.window.app.ui.FloatingWindowContent
+import com.github.only52607.compose.window.app.ui.theme.ComposeFloatingWindowTheme
 
 class MainActivity : ComponentActivity() {
 
