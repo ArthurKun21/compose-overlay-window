@@ -3,6 +3,10 @@ compile-sdk = "35"
 target-sdk = "35"
 min-sdk = "24"
 
+agp = "8.9.1"
+kotlin = "2.1.20"
+android-library = "8.3.2"
+
 android-core-ktx = "1.9.0"
 appcompat = "1.6.1"
 lifecycle = "2.8.7"
@@ -43,3 +47,6 @@ compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 google-material = { module = "com.google.android.material:material", version.ref = "google-material" }
 
 [plugins]
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+agp = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "android-library" }
