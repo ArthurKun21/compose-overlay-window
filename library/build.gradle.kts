@@ -2,6 +2,7 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     `maven-publish`
+    alias(libs.plugins.compose.compiler)
 }
 
 android {

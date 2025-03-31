@@ -50,3 +50,5 @@ google-material = { module = "com.google.android.material:material", version.ref
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 agp = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "android-library" }
+
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
