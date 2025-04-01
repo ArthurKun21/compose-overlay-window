@@ -104,6 +104,10 @@ class ComposeFloatingWindow(
 
     private var _isShowing = MutableStateFlow(false)
 
+    /**
+     * A [StateFlow] indicating whether the floating window is currently shown (`true`) or hidden (`false`).
+     * Does not reflect the destroyed state. Check [isDestroyed] for that.
+     */
     val isShowing: StateFlow<Boolean>
         get() = _isShowing.asStateFlow()
 
