@@ -20,6 +20,8 @@ test-espresso = "3.6.1"
 
 google-material = "1.12.0"
 
+leakcanary = "2.14"
+
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "android-core-ktx" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -44,6 +46,8 @@ compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
 google-material = { module = "com.google.android.material:material", version.ref = "google-material" }
+
+leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 
 [plugins]
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
