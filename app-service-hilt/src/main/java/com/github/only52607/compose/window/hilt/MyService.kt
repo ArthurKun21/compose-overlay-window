@@ -6,11 +6,13 @@ import android.content.Intent
 import android.os.IBinder
 import com.github.only52607.compose.window.ComposeFloatingWindow
 import com.github.only52607.compose.window.hilt.ui.FloatingWindowContent
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+@AndroidEntryPoint
 class MyService : Service() {
     companion object {
         private var _serviceStarted = MutableStateFlow(false)

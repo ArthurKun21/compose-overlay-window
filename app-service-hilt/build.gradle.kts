@@ -84,5 +84,6 @@ dependencies {
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.compiler)
 
+    implementation(libs.appcompat)
     implementation(libs.bundles.datastore)
 }
