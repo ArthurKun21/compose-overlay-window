@@ -18,8 +18,9 @@ jobs:
   build-app:
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
-        module: [app, app-service]
+        module: [app, app-service, app-service-hilt]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
