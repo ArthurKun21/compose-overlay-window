@@ -5,17 +5,25 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
 fun Modifier.dragFloatingWindow(
+    onDragStart: (Offset) -> Unit = { },
+    onDragEnd: () -> Unit = { },
+    onDragCancel: () -> Unit = { },
     onDrag: ((Int, Int) -> Unit)? = null,
 ): Modifier {
     val floatingWindow = LocalFloatingWindow.current
     val windowParams = remember { floatingWindow.windowParams }
     val dragModifier = Modifier
         .pointerInput(Unit) {
-            detectDragGestures { change, dragAmount ->
+            detectDragGestures(
+                onDragStart = onDragStart,
+                onDragEnd = onDragEnd,
+                onDragCancel = onDragCancel,
+            ) { change, dragAmount ->
                 change.consume()
                 val w = floatingWindow.decorView.width
                 val h = floatingWindow.decorView.height
