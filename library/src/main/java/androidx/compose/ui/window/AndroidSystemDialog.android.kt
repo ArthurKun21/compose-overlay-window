@@ -17,9 +17,6 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package androidx.compose.ui.window
 
-//import androidx.compose.ui.util.fastForEach
-//import androidx.compose.ui.util.fastMap
-//import androidx.compose.ui.util.fastMaxBy
 import android.content.Context
 import android.graphics.Outline
 import android.os.Build
@@ -67,9 +64,9 @@ import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import kotlin.math.roundToInt
 import kotlin.uuid.Uuid
-import kotlin.collections.forEach as fastForEach
-import kotlin.collections.map as fastMap
-import kotlin.collections.maxBy as fastMaxBy
+import kotlin.collections.forEach
+import kotlin.collections.map
+import kotlin.collections.maxBy
 
 /**
  * Properties used to customize the behavior of a [SystemDialog].
@@ -458,11 +455,11 @@ private fun SystemDialogLayout(
         content = content,
         modifier = modifier
     ) { measurables, constraints ->
-        val placeables = measurables.fastMap { it.measure(constraints) }
-        val width = placeables.fastMaxBy { it.width }?.width ?: constraints.minWidth
-        val height = placeables.fastMaxBy { it.height }?.height ?: constraints.minHeight
+        val placeables = measurables.map { it.measure(constraints) }
+        val width = placeables.maxBy { it.width }?.width ?: constraints.minWidth
+        val height = placeables.maxBy { it.height }?.height ?: constraints.minHeight
         layout(width, height) {
-            placeables.fastForEach { it.placeRelative(0, 0) }
+            placeables.forEach { it.placeRelative(0, 0) }
         }
     }
 }
