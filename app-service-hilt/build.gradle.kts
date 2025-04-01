@@ -4,12 +4,16 @@ buildscript {
         classpath(libs.hilt.android.gradle.plugin)
     }
 }
+hilt {
+    enableAggregatingTask = false
+}
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     alias(libs.plugins.compose.compiler)
 
+    alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
 
