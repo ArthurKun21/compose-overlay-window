@@ -45,8 +45,11 @@ import kotlinx.coroutines.launch
 
 class ComposeFloatingWindow(
     private val context: Context,
-    val windowParams: WindowManager.LayoutParams = defaultLayoutParams(context)
-) : SavedStateRegistryOwner, ViewModelStoreOwner, HasDefaultViewModelProviderFactory {
+    val windowParams: WindowManager.LayoutParams = defaultLayoutParams(context),
+) : SavedStateRegistryOwner,
+    ViewModelStoreOwner,
+    HasDefaultViewModelProviderFactory,
+    AutoCloseable {
 
     companion object {
         fun defaultLayoutParams(context: Context) = WindowManager.LayoutParams().apply {
@@ -172,5 +175,9 @@ class ComposeFloatingWindow(
         savedStateRegistryController.performRestore(null)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
         enableSavedStateHandles()
+    }
+
+    override fun close() {
+        TODO("Not yet implemented")
     }
 }
