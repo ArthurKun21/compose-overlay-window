@@ -23,8 +23,9 @@ fun FloatingWindowContent(
 ) {
     val floatingWindow = LocalFloatingWindow.current
 
-    ComposeFloatingWindowTheme {
-        val darkMode by model.darkMode.collectAsStateWithLifecycle(false)
+    val darkMode by model.darkMode.collectAsStateWithLifecycle(false)
+
+    ComposeFloatingWindowTheme(darkTheme = darkMode) {
 
         if (model.dialogVisible) {
             SystemAlertDialog(
