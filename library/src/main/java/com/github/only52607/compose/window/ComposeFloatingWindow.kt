@@ -57,14 +57,23 @@ class ComposeFloatingWindow(
     companion object {
         private const val TAG = "ComposeFloatingWindow"
 
+        /**
+         * Creates default [WindowManager.LayoutParams] suitable for a basic floating window.
+         * Sets WRAP_CONTENT dimensions, translucency, top-start gravity, default animations,
+         * and flags for non-modal, non-focusable interaction.
+         * Also sets the appropriate window type based on SDK version and context type.
+         */
         fun defaultLayoutParams(context: Context) = WindowManager.LayoutParams().apply {
             height = WindowManager.LayoutParams.WRAP_CONTENT
             width = WindowManager.LayoutParams.WRAP_CONTENT
             format = PixelFormat.TRANSLUCENT
             gravity = Gravity.START or Gravity.TOP
             windowAnimations = android.R.style.Animation_Dialog
-            flags = (WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                    or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
+            flags = (WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL // Allows touches to pass through
+                    or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE) // Prevents the window from taking focus (e.g., keyboard)
+
+            // Set window type correctly for overlays
+            // Requires SYSTEM_ALERT_WINDOW permission
             if (context !is Activity) {
                 type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
@@ -73,6 +82,7 @@ class ComposeFloatingWindow(
                     WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
                 }
             }
+            // If context is an Activity, the default window type associated with the activity is used.
         }
     }
     // --- Lifecycle, ViewModel, SavedState ---
