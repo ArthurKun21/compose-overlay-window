@@ -40,6 +40,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -317,7 +318,58 @@ class ComposeFloatingWindow(
         }
     }
 
+    /**
+     * Implementation of [AutoCloseable].
+     * Destroys the floating window, releasing all associated resources.
+     *
+     * This performs the following actions:
+     * 1. Hides the window if it is currently showing.
+     * 2. Disposes the Jetpack Compose composition.
+     * 3. Cancels all coroutines launched in the window's lifecycle scope.
+     * 4. Moves the lifecycle state to DESTROYED.
+     * 5. Clears the [ViewModelStore], destroying associated ViewModels.
+     * 6. Cleans up internal references.
+     *
+     * **Once destroyed, this instance cannot be reused.** Create a new `ComposeFloatingWindow`
+     * instance if you need to show a floating window again.
+     */
     override fun close() {
-        TODO("Not yet implemented")
+        if (_isDestroyed.value) {
+            Log.w(TAG, "Destroy called but window is already destroyed.")
+            return
+        }
+        Log.d(TAG, "Destroying window...")
+
+        // Mark as destroyed immediately to prevent race conditions
+        _isDestroyed.update { true }
+
+        // Hide the window if showing (ensures view is removed from WindowManager)
+        if(_isShowing.value){
+            hide()
+        }
+
+        // Dispose the composition
+        disposeCompositionIfNeeded()
+
+        // Cancel the custom lifecycle scope and its children (including the Recomposer's job)
+        Log.d(TAG, "Cancelling lifecycle coroutine scope.")
+        // Explicit cancellation
+        lifecycleCoroutineScope.cancel("ComposeFloatingWindow destroyed")
+
+        // Move lifecycle to DESTROYED
+        Log.d(TAG, "Setting lifecycle state to DESTROYED.")
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+
+        // Clear the ViewModelStore
+        Log.d(TAG, "Clearing ViewModelStore.")
+        viewModelStore.clear()
+
+        // Clean up references
+        // decorView is managed by GC once this instance is gone.
+        // composeView reference is cleared in disposeCompositionIfNeeded
+        // windowManager is a system service, no need to clear.
+        // savedStateRegistryController is tied to the lifecycle/owner, should be handled.
+
+        Log.d(TAG, "ComposeFloatingWindow destroyed successfully.")
     }
 }
