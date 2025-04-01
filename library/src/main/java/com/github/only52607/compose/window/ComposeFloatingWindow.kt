@@ -410,13 +410,13 @@ class ComposeFloatingWindow(
         }
         Log.d(TAG, "Destroying window...")
 
-        // Mark as destroyed immediately to prevent race conditions
-        _isDestroyed.update { true }
-
         // Hide the window if showing (ensures view is removed from WindowManager)
         if(_isShowing.value){
             hide()
         }
+
+        // Mark as destroyed immediately to prevent race conditions
+        _isDestroyed.update { true }
 
         // Dispose the composition
         disposeCompositionIfNeeded()
