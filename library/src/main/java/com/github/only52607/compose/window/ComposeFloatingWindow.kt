@@ -99,10 +99,10 @@ class ComposeFloatingWindow(
     override val savedStateRegistry: SavedStateRegistry
         get() = savedStateRegistryController.savedStateRegistry
 
-    private var _showing = MutableStateFlow(false)
+    private var _isShowing = MutableStateFlow(false)
 
-    val showing: StateFlow<Boolean>
-        get() = _showing.asStateFlow()
+    val isShowing: StateFlow<Boolean>
+        get() = _isShowing.asStateFlow()
 
     var decorView: ViewGroup = FrameLayout(context)
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -135,7 +135,7 @@ class ComposeFloatingWindow(
         require(decorView.isNotEmpty()) {
             "Content view cannot be empty"
         }
-        if (_showing.value) {
+        if (_isShowing.value) {
             update()
             return
         }
@@ -151,17 +151,17 @@ class ComposeFloatingWindow(
         }
         windowManager.addView(decorView, windowParams)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
-        _showing.update { true }
+        _isShowing.update { true }
     }
 
     fun update() {
-        if (!_showing.value) return
+        if (!_isShowing.value) return
         windowManager.updateViewLayout(decorView, windowParams)
     }
 
     fun hide() {
-        if (!_showing.value) return
-        _showing.update { false }
+        if (!_isShowing.value) return
+        _isShowing.update { false }
         windowManager.removeViewImmediate(decorView)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
     }

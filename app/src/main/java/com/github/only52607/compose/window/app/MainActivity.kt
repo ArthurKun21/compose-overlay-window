@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
             ComposeFloatingWindowTheme {
                 val showDialogPermission = remember { mutableStateOf(false) }
 
-                val showing by floatingWindow.showing.collectAsStateWithLifecycle()
+                val showing by floatingWindow.isShowing.collectAsStateWithLifecycle()
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
