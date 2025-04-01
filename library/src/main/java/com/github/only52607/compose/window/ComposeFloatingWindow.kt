@@ -6,6 +6,7 @@ import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -52,6 +53,8 @@ class ComposeFloatingWindow(
     AutoCloseable {
 
     companion object {
+        private const val TAG = "ComposeFloatingWindow"
+
         fun defaultLayoutParams(context: Context) = WindowManager.LayoutParams().apply {
             height = WindowManager.LayoutParams.WRAP_CONTENT
             width = WindowManager.LayoutParams.WRAP_CONTENT
@@ -196,9 +199,13 @@ class ComposeFloatingWindow(
     fun isAvailable(): Boolean = Settings.canDrawOverlays(context)
 
     init {
+        // Restore state early in the lifecycle
         savedStateRegistryController.performRestore(null)
+        // Mark the lifecycle as CREATED
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+        // Enable SavedStateHandles for ViewModels
         enableSavedStateHandles()
+        Log.d(TAG, "ComposeFloatingWindow initialized.")
     }
 
     override fun close() {
