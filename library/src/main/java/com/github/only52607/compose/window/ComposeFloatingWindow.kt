@@ -107,6 +107,15 @@ class ComposeFloatingWindow(
     val isShowing: StateFlow<Boolean>
         get() = _isShowing.asStateFlow()
 
+    private var _isDestroyed = MutableStateFlow(false)
+
+    /**
+     * A [StateFlow] indicating whether the floating window has been destroyed (`true`).
+     * Once destroyed, the instance cannot be reused. Create a new instance if needed.
+     */
+    val isDestroyed: StateFlow<Boolean>
+        get() = _isDestroyed.asStateFlow()
+
     /**
      * The root view container for the floating window's content.
      * This is the view added to the WindowManager.
