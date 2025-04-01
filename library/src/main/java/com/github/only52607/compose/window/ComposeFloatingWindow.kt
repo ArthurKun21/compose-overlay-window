@@ -28,7 +28,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.enableSavedStateHandles
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.lifecycle.viewmodel.CreationExtras
@@ -153,6 +152,16 @@ class ComposeFloatingWindow(
     private var composeView: ComposeView? = null // Hold a direct reference
     private var parentComposition: Recomposer? = null // Hold reference for disposal
 
+    /**
+     * Sets the Jetpack Compose content for the floating window.
+     *
+     * This method creates a [ComposeView] and sets your [content] within it.
+     * It also sets up the necessary CompositionLocal provider for [LocalFloatingWindow]
+     * and connects the view to this window's lifecycle, ViewModel store, and saved state registry.
+     *
+     * @param content The composable function defining the UI of the floating window.
+     * @throws IllegalStateException if called after [destroy] or [close] has been invoked.
+     */
     fun setContent(content: @Composable () -> Unit) {
         checkDestroyed()
         Log.d(TAG, "Setting content.")
@@ -206,6 +215,18 @@ class ComposeFloatingWindow(
         }
     }
 
+    /**
+     * Shows the floating window.
+     *
+     * Adds the [decorView] to the [WindowManager] using the configured [windowParams].
+     * Moves the lifecycle state to STARTED.
+     * Requires the `SYSTEM_ALERT_WINDOW` permission.
+     * Requires [setContent] to have been called first.
+     *
+     * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
+     * @throws IllegalStateException if [setContent] has not been called.
+     * @throws SecurityException if the `SYSTEM_ALERT_WINDOW` permission is not granted (logged as warning).
+     */
     fun show() {
         checkDestroyed()
 
@@ -245,6 +266,12 @@ class ComposeFloatingWindow(
         }
     }
 
+    /**
+     * Updates the layout of the floating window using the current [windowParams].
+     * Call this after modifying [windowParams] (e.g., position or size) while the window is showing.
+     *
+     * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
+     */
     fun update() {
         checkDestroyed()
 
@@ -260,6 +287,14 @@ class ComposeFloatingWindow(
         }
     }
 
+    /**
+     * Hides the floating window.
+     *
+     * Removes the [decorView] from the [WindowManager].
+     * Moves the lifecycle state to STOPPED.
+     *
+     * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
+     */
     fun hide() {
         checkDestroyed()
 
