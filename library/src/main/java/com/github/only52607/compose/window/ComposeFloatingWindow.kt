@@ -219,7 +219,17 @@ class ComposeFloatingWindow(
                 try {
                     recomposer.runRecomposeAndApplyChanges()
                 } catch (e: Exception) {
-                    Log.e(TAG, "Recomposer error: ${e.localizedMessage}", e)
+                    // Only log non-CancellationException errors as warnings,
+                    // since CancellationException is expected
+                    when (e) {
+                        is kotlinx.coroutines.CancellationException -> {
+                            Log.d(TAG, "Coroutine scope cancelled normally: ${e.message}")
+                        }
+
+                        else -> {
+                            Log.e(TAG, "Recomposer error", e)
+                        }
+                    }
                 } finally {
                     Log.d(TAG, "Recomposer job finished.")
                 }
@@ -423,8 +433,23 @@ class ComposeFloatingWindow(
 
         // Cancel the custom lifecycle scope and its children (including the Recomposer's job)
         Log.d(TAG, "Cancelling lifecycle coroutine scope.")
-        // Explicit cancellation
-        lifecycleCoroutineScope.cancel("ComposeFloatingWindow destroyed")
+        try {// Explicit cancellation
+            lifecycleCoroutineScope.cancel(
+                kotlinx.coroutines.CancellationException("ComposeFloatingWindow destroyed")
+            )
+        } catch (e: Exception) {
+            // Only log non-CancellationException errors as warnings,
+            // since CancellationException is expected
+            when (e) {
+                is kotlinx.coroutines.CancellationException -> {
+                    Log.d(TAG, "Coroutine scope cancelled normally: ${e.message}")
+                }
+
+                else -> {
+                    Log.e(TAG, "Recomposer error", e)
+                }
+            }
+        }
 
         // Move lifecycle to DESTROYED
         Log.d(TAG, "Setting lifecycle state to DESTROYED.")
