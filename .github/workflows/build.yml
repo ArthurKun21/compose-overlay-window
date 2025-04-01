@@ -17,6 +17,9 @@ env:
 jobs:
   build-app:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        module: [app, app-service]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,6 +39,6 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
     
-      - name: Build Android Package
+      - name: Build ${{ matrix.module }} module
         run: |
-          ./gradlew assembleRelease --parallel
+          ./gradlew :${{ matrix.module }}:assembleRelease --parallel

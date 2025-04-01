@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.github.only52607.compose.window.app"
+    namespace = "com.github.only52607.compose.window.service"
     compileSdk = libs.versions.compile.sdk.get().toInt()
 
     defaultConfig {
