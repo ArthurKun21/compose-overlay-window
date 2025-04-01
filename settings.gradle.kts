@@ -16,4 +16,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "ComposeFloatingWindow"
 include(":app")
+include(":app-service")
 include(":library")
