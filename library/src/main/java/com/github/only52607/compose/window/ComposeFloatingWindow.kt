@@ -46,6 +46,31 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Manages a floating window that can display Jetpack Compose content overlaying other applications.
+ *
+ * This class handles the lifecycle, state saving, ViewModel scope, and WindowManager interactions
+ * necessary for a floating Compose UI. It implements [AutoCloseable], allowing it to be used
+ * with Kotlin's `use` function for automatic resource cleanup.
+ *
+ * Example usage with `use`:
+ * ```kotlin
+ * val floatingWindow = ComposeFloatingWindow(context)
+ * floatingWindow.use { window -> // destroy() is called automatically at the end of this block
+ *     window.setContent { /* Your Composable UI */ }
+ *     window.show()
+ *     // ... interact with the window ...
+ * } // Window is hidden and resources are released here
+ * ```
+ *
+ * Remember to declare the `SYSTEM_ALERT_WINDOW` permission in your AndroidManifest.xml and
+ * request it at runtime if targeting Android M (API 23) or higher.
+ *
+ * @param context The context used for creating the window and accessing system services.
+ *                An application context is preferred to avoid leaks.
+ * @param windowParams The layout parameters for the floating window. Defaults are provided
+ *                     by [ComposeFloatingWindow.defaultLayoutParams].
+ */
 class ComposeFloatingWindow(
     private val context: Context,
     val windowParams: WindowManager.LayoutParams = defaultLayoutParams(context),
