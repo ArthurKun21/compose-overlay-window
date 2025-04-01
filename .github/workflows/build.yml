@@ -36,6 +36,7 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
     
+      # this step already builds the app and app-service at the same time.
       - name: Build Android Package
         run: |
           ./gradlew assembleRelease --parallel
