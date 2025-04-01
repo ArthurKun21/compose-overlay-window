@@ -1,8 +1,8 @@
 package com.github.only52607.compose.window.hilt
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -26,10 +27,12 @@ import com.github.only52607.compose.window.hilt.repository.UserPreferencesReposi
 import com.github.only52607.compose.window.hilt.ui.DialogPermission
 import com.github.only52607.compose.window.hilt.ui.theme.ComposeFloatingWindowTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
@@ -38,15 +41,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComposeFloatingWindowTheme {
-                val darkTheme by userPreferencesRepository.darkModeFlow.collectAsStateWithLifecycle(false)
-
-                LaunchedEffect(darkTheme) {
-                    val mode = if (darkTheme){
-                        AppCompatDelegate.MODE_NIGHT_YES
-                    } else {
-                        AppCompatDelegate.MODE_NIGHT_NO
-                    }
-                    AppCompatDelegate.setDefaultNightMode(mode)
+                LaunchedEffect(userPreferencesRepository.darkModeFlow) {
+                    userPreferencesRepository
+                        .darkModeFlow
+                        .distinctUntilChanged()
+                        .collect { darkMode ->
+                            AppCompatDelegate.setDefaultNightMode(
+                                if (darkMode) AppCompatDelegate.MODE_NIGHT_YES
+                                else AppCompatDelegate.MODE_NIGHT_NO
+                            )
+                        }
                 }
 
                 val showDialogPermission = remember { mutableStateOf(false) }

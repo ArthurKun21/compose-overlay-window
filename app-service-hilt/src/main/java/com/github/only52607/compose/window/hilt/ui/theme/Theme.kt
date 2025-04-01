@@ -4,6 +4,7 @@ import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -14,18 +15,32 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.compose.ui.graphics.Color
+
+private val surfaceDark = Color(0xFF101417)
+private val onSurfaceDark = Color(0xFFE0E3E8)
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
+    surface = surfaceDark,
+    onSurface = onSurfaceDark,
+    background = surfaceDark,
+    onBackground = onSurfaceDark,
 )
+
+private val surfaceLight = Color(0xFFF7F9FF)
+private val onSurfaceLight = Color(0xFF181C20)
 
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
-    tertiary = Pink40
-
+    tertiary = Pink40,
+    surface = surfaceLight,
+    onSurface = onSurfaceLight,
+    background = surfaceLight,
+    onBackground = surfaceLight
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
     surface = Color(0xFFFFFBFE),
@@ -64,7 +79,12 @@ fun ComposeFloatingWindowTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+        typography = Typography
+    ) {
+        Surface(
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            content()
+        }
+    }
 }

@@ -9,17 +9,22 @@ import androidx.compose.material3.SystemAlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.only52607.compose.window.LocalFloatingWindow
 import com.github.only52607.compose.window.dragFloatingWindow
 
 @Composable
 fun FloatingWindowContent(
-    model: FloatingWindowViewModel = viewModel()
+    model: FloatingWindowViewModel
 ) {
     val floatingWindow = LocalFloatingWindow.current
+
+    val darkMode by model.darkMode.collectAsStateWithLifecycle(false)
+
     if (model.dialogVisible) {
         SystemAlertDialog(
             onDismissRequest = { model.dismissDialog() },
@@ -29,14 +34,16 @@ fun FloatingWindowContent(
                 }
             },
             text = {
-                Text(text = "This is a system dialog")
+                Text(
+                    text = "This is now ${if (darkMode) "Dark" else "Light"} mode",
+                )
             }
         )
     }
     FloatingActionButton(
         modifier = Modifier.dragFloatingWindow(),
         onClick = {
-            model.showDialog()
+            model.showDialog(!darkMode)
         },
         elevation = FloatingActionButtonDefaults.elevation(
             defaultElevation = 0.dp
