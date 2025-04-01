@@ -191,14 +191,27 @@ class ComposeFloatingWindow(
     fun update() {
         checkDestroyed()
 
-        if (!_isShowing.value) return
-        windowManager.updateViewLayout(decorView, windowParams)
+        if (!_isShowing.value) {
+            Log.w(TAG, "Update called but window is not showing.")
+            return
+        }
+        Log.d(TAG, "Updating window layout.")
+        try {
+            windowManager.updateViewLayout(decorView, windowParams)
+        } catch (e: Exception){
+            Log.e(TAG, "Error updating window layout: ${e.localizedMessage}", e)
+        }
     }
 
     fun hide() {
         checkDestroyed()
 
-        if (!_isShowing.value) return
+        if (!_isShowing.value) {
+            Log.d(TAG, "Hide called but window is already hidden.")
+            return
+        }
+        Log.d(TAG, "Hiding window.")
+
         _isShowing.update { false }
         windowManager.removeViewImmediate(decorView)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
