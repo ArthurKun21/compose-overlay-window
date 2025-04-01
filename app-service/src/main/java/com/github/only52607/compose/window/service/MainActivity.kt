@@ -17,19 +17,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.github.only52607.compose.window.ComposeFloatingWindow
-import com.github.only52607.compose.window.service.ui.theme.ComposeFloatingWindowTheme
 import com.github.only52607.compose.window.service.ui.DialogPermission
-import com.github.only52607.compose.window.service.ui.FloatingWindowContent
+import com.github.only52607.compose.window.service.ui.theme.ComposeFloatingWindowTheme
 
 
 class MainActivity : ComponentActivity() {
 
-    private val floatingWindow by lazy {
-        createFloatingWindow()
-    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +34,9 @@ class MainActivity : ComponentActivity() {
             ComposeFloatingWindowTheme {
                 val showDialogPermission = remember { mutableStateOf(false) }
 
-                val showing by floatingWindow.isShowing.collectAsStateWithLifecycle()
+                val context = LocalContext.current
+
+                val isShowing by MyService.serviceStarted.collectAsStateWithLifecycle(false)
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -50,22 +49,18 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Button(
                             onClick = {
-                                if (floatingWindow.isAvailable()) {
-                                    show()
-                                } else {
-                                    showDialogPermission.value = true
-                                }
+                                MyService.start(context)
                             },
-                            enabled = !showing
+                            enabled = !isShowing
                         ) {
                             Text("Show")
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         Button(
                             onClick = {
-                                hide()
+                                MyService.stop(context)
                             },
-                            enabled = showing
+                            enabled = isShowing
                         ) {
                             Text("Hide")
                         }
@@ -76,18 +71,5 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun createFloatingWindow(): ComposeFloatingWindow =
-        ComposeFloatingWindow(applicationContext).apply {
-            setContent {
-                FloatingWindowContent()
-            }
-        }
 
-    private fun show() {
-        floatingWindow.show()
-    }
-
-    private fun hide() {
-        floatingWindow.hide()
-    }
 }
