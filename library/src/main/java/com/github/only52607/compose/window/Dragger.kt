@@ -8,7 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
-fun Modifier.dragFloatingWindow(): Modifier {
+fun Modifier.dragFloatingWindow(
+    onDrag: ((Int, Int) -> Unit)? = null,
+): Modifier {
     val floatingWindow = LocalFloatingWindow.current
     val windowParams = remember { floatingWindow.windowParams }
     val dragModifier = Modifier
@@ -18,10 +20,14 @@ fun Modifier.dragFloatingWindow(): Modifier {
                 val w = floatingWindow.decorView.width
                 val h = floatingWindow.decorView.height
                 val f = Rect().also { floatingWindow.decorView.getWindowVisibleDisplayFrame(it) }
-                windowParams.x =
-                    (windowParams.x + dragAmount.x.toInt()).coerceIn(0..(f.width() - w))
-                windowParams.y =
-                    (windowParams.y + dragAmount.y.toInt()).coerceIn(0..(f.height() - h))
+                val left = (windowParams.x + dragAmount.x.toInt()).coerceIn(0..(f.width() - w))
+                val top = (windowParams.y + dragAmount.y.toInt()).coerceIn(0..(f.height() - h))
+
+                windowParams.x = left
+                windowParams.y = top
+
+                onDrag?.invoke(left, top)
+
                 floatingWindow.update()
             }
         }
