@@ -138,6 +138,8 @@ class ComposeFloatingWindow(
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
     fun setContent(content: @Composable () -> Unit) {
+        checkDestroyed()
+
         setContentView(ComposeView(context).apply {
             setContent {
                 CompositionLocalProvider(
@@ -161,6 +163,8 @@ class ComposeFloatingWindow(
     }
 
     fun show() {
+        checkDestroyed()
+
         if (isAvailable().not()) return
         require(decorView.isNotEmpty()) {
             "Content view cannot be empty"
@@ -185,11 +189,15 @@ class ComposeFloatingWindow(
     }
 
     fun update() {
+        checkDestroyed()
+
         if (!_isShowing.value) return
         windowManager.updateViewLayout(decorView, windowParams)
     }
 
     fun hide() {
+        checkDestroyed()
+
         if (!_isShowing.value) return
         _isShowing.update { false }
         windowManager.removeViewImmediate(decorView)
@@ -206,6 +214,13 @@ class ComposeFloatingWindow(
         // Enable SavedStateHandles for ViewModels
         enableSavedStateHandles()
         Log.d(TAG, "ComposeFloatingWindow initialized.")
+    }
+
+    /** Throws an [IllegalStateException] if the window has been destroyed. */
+    private fun checkDestroyed() {
+        check(!_isDestroyed.value) {
+            "ComposeFloatingWindow has been destroyed and cannot be used."
+        }
     }
 
     override fun close() {
