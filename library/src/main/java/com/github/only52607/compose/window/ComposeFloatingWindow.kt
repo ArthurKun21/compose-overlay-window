@@ -107,7 +107,18 @@ class ComposeFloatingWindow(
     val isShowing: StateFlow<Boolean>
         get() = _isShowing.asStateFlow()
 
+    /**
+     * The root view container for the floating window's content.
+     * This is the view added to the WindowManager.
+     */
     var decorView: ViewGroup = FrameLayout(context)
+        .apply {
+            // Important: Prevent clipping so shadows or elements outside bounds can be drawn
+            clipChildren = false
+            clipToPadding = false
+        }
+        private set
+
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
     fun setContent(content: @Composable () -> Unit) {
