@@ -1,7 +1,16 @@
+buildscript {
+    dependencies {
+        classpath(libs.ksp.gradle)
+        classpath(libs.hilt.android.gradle.plugin)
+    }
+}
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     alias(libs.plugins.compose.compiler)
+
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -67,4 +76,7 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
     debugImplementation(libs.leak.canary)
+
+    implementation(libs.dagger.hilt.android)
+    ksp(libs.dagger.hilt.compiler)
 }
