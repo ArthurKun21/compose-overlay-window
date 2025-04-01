@@ -8,7 +8,6 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
-import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -38,6 +37,9 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -73,6 +75,15 @@ class ComposeFloatingWindow(
             }
         }
     }
+    // --- Lifecycle, ViewModel, SavedState ---
+
+    // Use a SupervisorJob so failure of one child doesn't cause others to fail
+    // Use a custom scope tied to the window's lifecycle for managing window-specific coroutines
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.e(TAG, "Coroutine Exception: ${throwable.localizedMessage}", throwable)
+    }
+    private val lifecycleCoroutineScope = CoroutineScope(SupervisorJob() +
+            AndroidUiDispatcher.CurrentThread + coroutineExceptionHandler)
 
     override val defaultViewModelProviderFactory: ViewModelProvider.Factory by lazy {
         SavedStateViewModelFactory(
@@ -105,6 +116,8 @@ class ComposeFloatingWindow(
     override val savedStateRegistry: SavedStateRegistry
         get() = savedStateRegistryController.savedStateRegistry
 
+    // --- Window State ---
+
     private var _isShowing = MutableStateFlow(false)
 
     /**
@@ -136,11 +149,38 @@ class ComposeFloatingWindow(
         private set
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    private var composeView: ComposeView? = null // Hold a direct reference
+    private var parentComposition: Recomposer? = null // Hold reference for disposal
 
     fun setContent(content: @Composable () -> Unit) {
         checkDestroyed()
+        Log.d(TAG, "Setting content.")
 
-        setContentView(ComposeView(context).apply {
+        disposeCompositionIfNeeded()
+
+        val currentComposeView = ComposeView(context).apply {
+
+            setViewTreeLifecycleOwner(this@ComposeFloatingWindow)
+            setViewTreeViewModelStoreOwner(this@ComposeFloatingWindow)
+            setViewTreeSavedStateRegistryOwner(this@ComposeFloatingWindow)
+
+            // Create a Recomposer tied to the window's lifecycle scope
+            val recomposer = Recomposer(lifecycleCoroutineScope.coroutineContext)
+            compositionContext = recomposer
+            parentComposition = recomposer // Store for later disposal
+
+            // Launch the Recomposer
+            lifecycleCoroutineScope.launch {
+                try {
+                    recomposer.runRecomposeAndApplyChanges()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Recomposer error: ${e.localizedMessage}", e)
+                } finally {
+                    Log.d(TAG, "Recomposer job finished.")
+                }
+            }
+
+            // Set the actual Composable content
             setContent {
                 CompositionLocalProvider(
                     LocalFloatingWindow provides this@ComposeFloatingWindow
@@ -148,44 +188,60 @@ class ComposeFloatingWindow(
                     content()
                 }
             }
-            setViewTreeLifecycleOwner(this@ComposeFloatingWindow)
-            setViewTreeViewModelStoreOwner(this@ComposeFloatingWindow)
-            setViewTreeSavedStateRegistryOwner(this@ComposeFloatingWindow)
-        })
-    }
+        }
 
-    private fun setContentView(view: View) {
+        this.composeView = currentComposeView // Store reference
+
+        // Replace the content view in the decorView
         if (decorView.isNotEmpty()) {
             decorView.removeAllViews()
         }
-        decorView.addView(view)
-        update()
+
+        decorView.addView(currentComposeView)
+
+        // If already showing, update the layout immediately
+        if (_isShowing.value) {
+            update()
+        }
     }
 
     fun show() {
         checkDestroyed()
 
-        if (isAvailable().not()) return
-        require(decorView.isNotEmpty()) {
-            "Content view cannot be empty"
+        require(composeView != null) {
+            "Content must be set using setContent() before showing the window."
         }
-        if (_isShowing.value) {
-            update()
+
+        if (!isAvailable()) {
+            Log.w(TAG, "Overlay permission (SYSTEM_ALERT_WINDOW) not granted. Cannot show window.")
             return
         }
-        decorView.getChildAt(0)?.takeIf { it is ComposeView }?.let { composeView ->
-            val reComposer = Recomposer(AndroidUiDispatcher.CurrentThread)
-            composeView.compositionContext = reComposer
-            lifecycleScope.launch(AndroidUiDispatcher.CurrentThread) {
-                reComposer.runRecomposeAndApplyChanges()
+
+        if (_isShowing.value) {
+            Log.d(TAG, "Window already showing, updating layout.")
+            update() // Ensure layout is up-to-date if show is called again
+            return
+        }
+
+        Log.d(TAG, "Showing window.")
+
+        try {
+            // Ensure the view doesn't have a parent before adding
+            if (decorView.parent != null) {
+                Log.w(TAG, "DecorView already has a parent. Removing it.")
+                (decorView.parent as? ViewGroup)?.removeView(decorView)
             }
+            windowManager.addView(decorView, windowParams)
+            // Move lifecycle to STARTED only after view is successfully added
+            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+            // Update state last
+            _isShowing.update { true }
+        } catch (e: Exception) {
+            // Catch potential exceptions from WindowManager (e.g., security, bad token)
+            Log.e(TAG, "Error showing window: ${e.localizedMessage}", e)
+            // Reset state if adding failed
+            _isShowing.update { false }
         }
-        if (decorView.parent != null) {
-            windowManager.removeViewImmediate(decorView)
-        }
-        windowManager.addView(decorView, windowParams)
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
-        _isShowing.update { true }
     }
 
     fun update() {
@@ -213,8 +269,21 @@ class ComposeFloatingWindow(
         Log.d(TAG, "Hiding window.")
 
         _isShowing.update { false }
-        windowManager.removeViewImmediate(decorView)
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+        try {
+            // Check if view is still attached before removing
+            if (decorView.parent != null) {
+                windowManager.removeViewImmediate(decorView) // Use immediate for synchronous removal
+            } else {
+                Log.w(TAG, "Hide called but DecorView has no parent.")
+            }
+        } catch (e: Exception) {
+            // Catch potential exceptions (e.g., view not attached)
+            Log.e(TAG, "Error hiding window: ${e.localizedMessage}", e)
+        } finally {
+            // Move lifecycle to STOPPED regardless of removal success,
+            // as the intention is to stop interaction.
+            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+        }
     }
 
     fun isAvailable(): Boolean = Settings.canDrawOverlays(context)
@@ -233,6 +302,18 @@ class ComposeFloatingWindow(
     private fun checkDestroyed() {
         check(!_isDestroyed.value) {
             "ComposeFloatingWindow has been destroyed and cannot be used."
+        }
+    }
+
+    /** Disposes the Compose composition and clears the reference. */
+    private fun disposeCompositionIfNeeded() {
+        composeView?.let {
+            Log.d(TAG, "Disposing composition.")
+            it.disposeComposition() // Dispose the underlying composition
+            parentComposition?.cancel() // Cancel the recomposer explicitly if needed
+            parentComposition = null
+            decorView.removeView(it) // Remove view from hierarchy
+            composeView = null // Clear the reference
         }
     }
 
