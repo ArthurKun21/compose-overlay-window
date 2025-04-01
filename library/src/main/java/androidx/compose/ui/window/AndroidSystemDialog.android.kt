@@ -65,8 +65,8 @@ import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import java.util.UUID
 import kotlin.math.roundToInt
+import kotlin.uuid.Uuid
 import kotlin.collections.forEach as fastForEach
 import kotlin.collections.map as fastMap
 import kotlin.collections.maxBy as fastMaxBy
@@ -89,7 +89,7 @@ import kotlin.collections.maxBy as fastMaxBy
  * set to `false` for Android [R][Build.VERSION_CODES.R] and earlier.
  */
 @Immutable
-class SystemDialogProperties constructor(
+class SystemDialogProperties(
     val dismissOnBackPress: Boolean = true,
     val dismissOnClickOutside: Boolean = true,
     val securePolicy: SecureFlagPolicy = SecureFlagPolicy.Inherit,
@@ -162,7 +162,7 @@ fun SystemDialog(
     val layoutDirection = LocalLayoutDirection.current
     val composition = rememberCompositionContext()
     val currentContent by rememberUpdatedState(content)
-    val dialogId = rememberSaveable { UUID.randomUUID() }
+    val dialogId = rememberSaveable { Uuid.random().toString() }
     val dialog = remember(view, density) {
         SystemDialogWrapper(
             onDismissRequest,
@@ -283,14 +283,13 @@ private class SystemDialogLayout(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 private class SystemDialogWrapper(
     private var onDismissRequest: () -> Unit,
     private var properties: SystemDialogProperties,
     private val composeView: View,
     layoutDirection: LayoutDirection,
     density: Density,
-    dialogId: UUID
+    dialogId: String
 ) : ComponentDialog(
     /**
      * [Window.setClipToOutline] is only available from 22+, but the style attribute exists on 21.
