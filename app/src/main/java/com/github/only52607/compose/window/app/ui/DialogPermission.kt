@@ -19,12 +19,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.github.only52607.compose.window.app.R
+import androidx.core.net.toUri
 
 @Composable
 fun DialogPermission(
     showDialogState: MutableState<Boolean> = mutableStateOf(false),
     permission: String = Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-    onDismiss: () -> Unit = { }
+    onDismiss: () -> Unit = { },
 ) {
     var showDialogPermission by remember { showDialogState }
     val context = LocalContext.current
@@ -66,7 +67,7 @@ private fun Context.requestPermission(permission: String) {
     startActivity(
         Intent(
             permission,
-        Uri.parse("package:$packageName")
+            "package:$packageName".toUri()
     ).apply {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     })
