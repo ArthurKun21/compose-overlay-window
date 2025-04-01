@@ -6,7 +6,7 @@ on:
       - '.idea/**'
       - 'preview/**'
       - 'jitpack.yml'
-      - '*.md'
+      - '**/*.md'
       - '.gitignore'
   workflow_dispatch:
 
