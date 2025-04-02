@@ -32,7 +32,7 @@ This is mostly just a sample project on how to incorporate hilt into viewmodels 
 ![compose-floating-window](https://github.com/user-attachments/assets/2201f599-137d-48ba-8c79-66eb86461fa3)
 
 Note:
-- Service is not aware of the App's theme colors. There is a need to pass the Default Themeing in this app's case `ComposeFloatingWindowTheme` and you can decide if you'll changed it to fix theme or use preference to update the theme
+- The service is not aware of the app's theme colors. To fix this, you need to pass the default theme, which is ComposeFloatingWindowTheme in this app. You can then decide whether to modify this theme directly or use preferences to allow users to dynamically update the theme.
 
 ```kotlin
 val darkMode by model.darkMode.collectAsStateWithLifecycle(false)
