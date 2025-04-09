@@ -6,7 +6,7 @@ min-sdk = "24"
 agp = "8.9.1"
 kotlin = "2.1.20"
 
-android-core-ktx = "1.15.0"
+android-core-ktx = "1.16.0"
 appcompat = "1.7.0"
 lifecycle = "2.8.7"
 activity-compose = "1.10.1"
