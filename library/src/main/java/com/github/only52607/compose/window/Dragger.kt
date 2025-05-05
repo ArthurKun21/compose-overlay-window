@@ -7,6 +7,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeSource
 
 @Composable
 fun Modifier.dragFloatingWindow(
@@ -17,10 +19,19 @@ fun Modifier.dragFloatingWindow(
 ): Modifier {
     val floatingWindow = LocalFloatingWindow.current
     val windowParams = remember { floatingWindow.windowParams }
+
+    var lastUpdateTime = 0.milliseconds
+    var targetTime = TimeSource.Monotonic.markNow()
+    val interval = 32.milliseconds
+
     val dragModifier = Modifier
         .pointerInput(Unit) {
             detectDragGestures(
-                onDragStart = onDragStart,
+                onDragStart = { offset ->
+                    lastUpdateTime = 0.milliseconds
+                    targetTime = TimeSource.Monotonic.markNow() + interval
+                    onDragStart.invoke(offset)
+                },
                 onDragEnd = onDragEnd,
                 onDragCancel = onDragCancel,
             ) { change, dragAmount ->
@@ -34,9 +45,11 @@ fun Modifier.dragFloatingWindow(
                 windowParams.x = left
                 windowParams.y = top
 
-                onDrag?.invoke(left, top)
-
-                floatingWindow.update()
+                if (targetTime.hasPassedNow()) {
+                    onDrag?.invoke(left, top)
+                    floatingWindow.update()
+                    targetTime = TimeSource.Monotonic.markNow() + interval
+                }
             }
         }
 
