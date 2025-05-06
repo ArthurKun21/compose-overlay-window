@@ -3,7 +3,7 @@ compile-sdk = "35"
 target-sdk = "35"
 min-sdk = "24"
 
-agp = "8.9.2"
+agp = "8.10.0"
 kotlin = "2.1.20"
 
 android-core-ktx = "1.16.0"
