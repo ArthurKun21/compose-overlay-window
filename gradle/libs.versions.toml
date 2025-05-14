@@ -4,7 +4,7 @@ target-sdk = "35"
 min-sdk = "24"
 
 agp = "8.10.0"
-kotlin = "2.1.20"
+kotlin = "2.1.21"
 
 android-core-ktx = "1.16.0"
 appcompat = "1.7.0"
