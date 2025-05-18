@@ -184,8 +184,21 @@ class ComposeFloatingWindow(
         private set
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    val display = DisplayHelper(context, windowManager)
     private var composeView: ComposeView? = null // Hold a direct reference
     private var parentComposition: Recomposer? = null // Hold reference for disposal
+
+    /**
+     * The maximum X coordinate for the floating window.
+     */
+    val maxXCoordinate
+        get() = display.metrics.widthPixels - decorView.measuredWidth
+
+    /**
+     * The maximum Y coordinate for the floating window.
+     */
+    val maxYCoordinate
+        get() = display.metrics.heightPixels - decorView.measuredHeight
 
     /**
      * Sets the Jetpack Compose content for the floating window.

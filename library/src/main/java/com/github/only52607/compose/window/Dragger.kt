@@ -1,12 +1,12 @@
 package com.github.only52607.compose.window
 
-import android.graphics.Rect
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import kotlin.math.roundToInt
 
 @Composable
 fun Modifier.dragFloatingWindow(
@@ -17,7 +17,8 @@ fun Modifier.dragFloatingWindow(
 ): Modifier {
     val floatingWindow = LocalFloatingWindow.current
     val windowParams = remember { floatingWindow.windowParams }
-    val dragModifier = Modifier
+
+    return this
         .pointerInput(Unit) {
             detectDragGestures(
                 onDragStart = onDragStart,
@@ -25,11 +26,12 @@ fun Modifier.dragFloatingWindow(
                 onDragCancel = onDragCancel,
             ) { change, dragAmount ->
                 change.consume()
-                val w = floatingWindow.decorView.width
-                val h = floatingWindow.decorView.height
-                val f = Rect().also { floatingWindow.decorView.getWindowVisibleDisplayFrame(it) }
-                val left = (windowParams.x + dragAmount.x.toInt()).coerceIn(0..(f.width() - w))
-                val top = (windowParams.y + dragAmount.y.toInt()).coerceIn(0..(f.height() - h))
+
+                val targetX = floatingWindow.windowParams.x + dragAmount.x.roundToInt()
+                val targetY = floatingWindow.windowParams.y + dragAmount.y.roundToInt()
+
+                val left = targetX.coerceIn(0, floatingWindow.maxXCoordinate)
+                val top = targetY.coerceIn(0, floatingWindow.maxYCoordinate)
 
                 windowParams.x = left
                 windowParams.y = top
@@ -39,6 +41,4 @@ fun Modifier.dragFloatingWindow(
                 floatingWindow.update()
             }
         }
-
-    return this then dragModifier
 }
