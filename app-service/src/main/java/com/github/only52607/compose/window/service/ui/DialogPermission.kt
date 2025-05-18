@@ -1,8 +1,5 @@
 package com.github.only52607.compose.window.service.ui
 
-import android.content.Context
-import android.content.Intent
-import android.provider.Settings
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -10,28 +7,44 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.github.only52607.compose.window.checkOverlayPermission
+import com.github.only52607.compose.window.requestOverlayPermission
 import com.github.only52607.compose.window.service.R
-import androidx.core.net.toUri
 
 @Composable
 fun DialogPermission(
-    showDialogState: MutableState<Boolean> = mutableStateOf(false),
-    permission: String = Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
     onDismiss: () -> Unit = { },
 ) {
-    var showDialogPermission by remember { showDialogState }
     val context = LocalContext.current
-    if(showDialogPermission.not()) return
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner.lifecycle) {
+        val observer = object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                val overlayGranted = checkOverlayPermission(context)
+                if (overlayGranted) {
+                    onDismiss()
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     AlertDialog(
         icon = {
-            Icon(Icons.Default.Warning, contentDescription = stringResource(R.string.permission_required))
+            Icon(
+                Icons.Default.Warning,
+                contentDescription = stringResource(R.string.permission_required)
+            )
         },
         title = {
             Text(text = stringResource(id = R.string.permission_required))
@@ -43,31 +56,16 @@ fun DialogPermission(
         confirmButton = {
             TextButton(
                 onClick = {
-                    showDialogPermission = false
-                    context.requestPermission(permission)
+                    requestOverlayPermission(context)
                 }
             ) {
                 Text(stringResource(R.string.grant_permission))
             }
         },
         dismissButton = {
-            TextButton(
-                onClick = {
-                    showDialogPermission = false
-                }
-            ) {
-                Text(stringResource(R.string.cancel))
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
             }
         }
     )
-}
-
-private fun Context.requestPermission(permission: String) {
-    startActivity(
-        Intent(
-            permission,
-            "package:$packageName".toUri()
-    ).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    })
 }
