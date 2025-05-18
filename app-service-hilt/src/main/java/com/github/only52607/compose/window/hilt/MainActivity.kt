@@ -16,12 +16,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.github.only52607.compose.window.checkOverlayPermission
 import com.github.only52607.compose.window.hilt.repository.UserPreferencesRepository
 import com.github.only52607.compose.window.hilt.ui.DialogPermission
 import com.github.only52607.compose.window.hilt.ui.theme.ComposeFloatingWindowTheme
@@ -50,8 +52,7 @@ class MainActivity : AppCompatActivity() {
                             )
                         }
                 }
-
-                val showDialogPermission = remember { mutableStateOf(false) }
+                var showDialogPermission by rememberSaveable { mutableStateOf(false) }
 
                 val context = LocalContext.current
 
@@ -68,7 +69,12 @@ class MainActivity : AppCompatActivity() {
                     ) {
                         Button(
                             onClick = {
-                                MyService.start(context)
+                                val overlayPermission = checkOverlayPermission(context)
+                                if (overlayPermission) {
+                                    MyService.start(context)
+                                } else {
+                                    showDialogPermission = true
+                                }
                             },
                             enabled = !isShowing
                         ) {
@@ -84,7 +90,14 @@ class MainActivity : AppCompatActivity() {
                             Text("Hide")
                         }
                     }
-                    DialogPermission(showDialogState = showDialogPermission)
+                }
+
+                if (showDialogPermission) {
+                    DialogPermission(
+                        onDismiss = {
+                            showDialogPermission = false
+                        }
+                    )
                 }
             }
         }
