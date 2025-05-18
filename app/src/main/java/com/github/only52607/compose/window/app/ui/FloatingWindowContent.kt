@@ -17,14 +17,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.only52607.compose.window.LocalFloatingWindow
 import com.github.only52607.compose.window.dragFloatingWindow
 
 @Composable
 fun FloatingWindowContent(
-    model: FloatingWindowViewModel = viewModel()
+    model: FloatingWindowViewModel = viewModel(),
 ) {
-    val floatingWindow = LocalFloatingWindow.current
+//    val floatingWindow = LocalFloatingWindow.current
 
     var expanded by rememberSaveable { mutableStateOf(false) }
 
@@ -43,10 +42,7 @@ fun FloatingWindowContent(
     }
     FloatingActionButton(
         modifier = Modifier.dragFloatingWindow(),
-        onClick = {
-//            model.showDialog()
-            expanded = !expanded
-        },
+        onClick = { expanded = !expanded },
         elevation = FloatingActionButtonDefaults.elevation(
             defaultElevation = 0.dp
         )
