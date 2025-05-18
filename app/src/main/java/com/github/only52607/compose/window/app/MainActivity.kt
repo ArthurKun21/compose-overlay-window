@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.only52607.compose.window.ComposeFloatingWindow
 import com.github.only52607.compose.window.app.ui.DialogPermission
 import com.github.only52607.compose.window.app.ui.FloatingWindowContent
+import com.github.only52607.compose.window.app.ui.newLayoutParams
 import com.github.only52607.compose.window.app.ui.theme.ComposeFloatingWindowTheme
 
 class MainActivity : ComponentActivity() {
@@ -84,7 +85,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun createFloatingWindow(): ComposeFloatingWindow =
-        ComposeFloatingWindow(applicationContext).apply {
+        ComposeFloatingWindow(
+            applicationContext,
+            newLayoutParams(applicationContext)
+        ).apply {
             setContent {
                 FloatingWindowContent()
             }
