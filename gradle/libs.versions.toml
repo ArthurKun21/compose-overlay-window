@@ -7,7 +7,7 @@ agp = "8.10.1"
 kotlin = "2.1.21"
 
 android-core-ktx = "1.16.0"
-appcompat = "1.7.0"
+appcompat = "1.7.1"
 lifecycle = "2.9.0"
 activity-compose = "1.10.1"
 
