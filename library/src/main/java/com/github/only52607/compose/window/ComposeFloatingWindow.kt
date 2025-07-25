@@ -92,8 +92,9 @@ class ComposeFloatingWindow(
             format = PixelFormat.TRANSLUCENT
             gravity = Gravity.START or Gravity.TOP
             windowAnimations = android.R.style.Animation_Dialog
-            flags = (WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL // Allows touches to pass through
-                    or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE) // Prevents the window from taking focus (e.g., keyboard)
+            flags =
+                (WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL // Allows touches to pass through
+                        or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE) // Prevents the window from taking focus (e.g., keyboard)
 
             // Set window type correctly for overlays
             // Requires SYSTEM_ALERT_WINDOW permission
@@ -115,8 +116,10 @@ class ComposeFloatingWindow(
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Coroutine Exception: ${throwable.localizedMessage}", throwable)
     }
-    private val lifecycleCoroutineScope = CoroutineScope(SupervisorJob() +
-            AndroidUiDispatcher.CurrentThread + coroutineExceptionHandler)
+    private val lifecycleCoroutineScope = CoroutineScope(
+        SupervisorJob() +
+                AndroidUiDispatcher.CurrentThread + coroutineExceptionHandler
+    )
 
     override val defaultViewModelProviderFactory: ViewModelProvider.Factory by lazy {
         SavedStateViewModelFactory(
@@ -338,7 +341,7 @@ class ComposeFloatingWindow(
         Log.d(TAG, "Updating window layout.")
         try {
             windowManager.updateViewLayout(decorView, windowParams)
-        } catch (e: Exception){
+        } catch (e: Exception) {
             Log.e(TAG, "Error updating window layout: ${e.localizedMessage}", e)
         }
     }
@@ -432,7 +435,7 @@ class ComposeFloatingWindow(
         Log.d(TAG, "Destroying window...")
 
         // Hide the window if showing (ensures view is removed from WindowManager)
-        if(_isShowing.value){
+        if (_isShowing.value) {
             hide()
         }
 
