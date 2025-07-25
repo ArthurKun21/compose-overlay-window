@@ -1,6 +1,5 @@
 buildscript {
     dependencies {
-        classpath(libs.ksp.gradle)
         classpath(libs.hilt.android.gradle.plugin)
     }
 }
