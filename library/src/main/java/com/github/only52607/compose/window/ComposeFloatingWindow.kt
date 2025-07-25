@@ -45,6 +45,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Manages a floating window that can display Jetpack Compose content overlaying other applications.
@@ -121,6 +123,7 @@ class ComposeFloatingWindow(
         SupervisorJob() +
                 coroutineContext + coroutineExceptionHandler
     )
+    private val mutex = Mutex()
 
     override val defaultViewModelProviderFactory: ViewModelProvider.Factory by lazy {
         SavedStateViewModelFactory(
@@ -324,18 +327,21 @@ class ComposeFloatingWindow(
      *
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
      */
-    fun update() {
+    fun update() = lifecycleCoroutineScope.launch {
         checkDestroyed()
 
         if (!_isShowing.value) {
             Log.w(TAG, "Update called but window is not showing.")
-            return
+            return@launch
         }
         Log.d(TAG, "Updating window layout.")
-        try {
-            windowManager.updateViewLayout(decorView, windowParams)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error updating window layout: ${e.localizedMessage}", e)
+        mutex.withLock {
+            try {
+
+                windowManager.updateViewLayout(decorView, windowParams)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating window layout: ${e.localizedMessage}", e)
+            }
         }
     }
 

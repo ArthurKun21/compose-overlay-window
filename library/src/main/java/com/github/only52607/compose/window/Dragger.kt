@@ -34,10 +34,8 @@ fun Modifier.dragFloatingWindow(
                 val left = targetX.coerceIn(0, floatingWindow.maxXCoordinate)
                 val top = targetY.coerceIn(0, floatingWindow.maxYCoordinate)
 
-                synchronized(windowParams) {
-                    windowParams.x = left
-                    windowParams.y = top
-                }
+                windowParams.x = left
+                windowParams.y = top
 
                 onDrag?.invoke(left, top)
 
