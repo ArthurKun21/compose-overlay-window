@@ -1,5 +1,6 @@
 package com.github.only52607.compose.window
 
+import android.util.Log
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -8,6 +9,29 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlin.math.roundToInt
 
+/**
+ * Adds drag functionality to make a floating window draggable.
+ * 
+ * This modifier enables the user to drag the floating window around the screen by
+ * applying touch gestures to the composable it's attached to. The window position
+ * is automatically constrained to stay within screen bounds.
+ * 
+ * Example usage:
+ * ```kotlin
+ * FloatingActionButton(
+ *     modifier = Modifier.dragFloatingWindow(),
+ *     onClick = { /* handle click */ }
+ * ) {
+ *     Icon(Icons.Filled.Call, "Call")
+ * }
+ * ```
+ * 
+ * @param onDragStart Callback invoked when drag gesture starts. Receives the initial touch offset.
+ * @param onDragEnd Callback invoked when drag gesture ends normally.
+ * @param onDragCancel Callback invoked when drag gesture is cancelled.
+ * @param onDrag Optional callback invoked during drag with the current window coordinates (left, top).
+ * @return A [Modifier] that enables drag functionality for the floating window.
+ */
 @Composable
 fun Modifier.dragFloatingWindow(
     onDragStart: (Offset) -> Unit = { },
@@ -33,12 +57,16 @@ fun Modifier.dragFloatingWindow(
                 val left = targetX.coerceIn(0, floatingWindow.maxXCoordinate)
                 val top = targetY.coerceIn(0, floatingWindow.maxYCoordinate)
 
-                windowParams.x = left
-                windowParams.y = top
+                floatingWindow.updateCoordinate(left, top)
 
                 onDrag?.invoke(left, top)
 
-                floatingWindow.update()
+                try {
+                    floatingWindow.update()
+                } catch (e: Exception) {
+                    // Log but don't crash on update failures during drag
+                    Log.w(TAG, "Failed to update window position: ${e.message}")
+                }
             }
         }
 }

@@ -45,6 +45,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Manages a floating window that can display Jetpack Compose content overlaying other applications.
@@ -80,13 +82,24 @@ class ComposeFloatingWindow(
     AutoCloseable {
 
     companion object {
-        private const val TAG = "ComposeFloatingWindow"
-
         /**
          * Creates default [WindowManager.LayoutParams] suitable for a basic floating window.
+         * 
          * Sets WRAP_CONTENT dimensions, translucency, top-start gravity, default animations,
          * and flags for non-modal, non-focusable interaction.
          * Also sets the appropriate window type based on SDK version and context type.
+         * 
+         * The created parameters include:
+         * - WRAP_CONTENT dimensions for both width and height
+         * - TRANSLUCENT pixel format for transparency support
+         * - START|TOP gravity for positioning
+         * - NOT_TOUCH_MODAL and NOT_FOCUSABLE flags
+         * - Appropriate window type for overlay permissions
+         * 
+         * @param context The context used to determine the appropriate window type.
+         *                Activity contexts use default window type, while non-Activity
+         *                contexts use overlay window types that require SYSTEM_ALERT_WINDOW permission.
+         * @return [WindowManager.LayoutParams] configured for floating window usage.
          */
         fun defaultLayoutParams(context: Context) = WindowManager.LayoutParams().apply {
             height = WindowManager.LayoutParams.WRAP_CONTENT
@@ -94,8 +107,9 @@ class ComposeFloatingWindow(
             format = PixelFormat.TRANSLUCENT
             gravity = Gravity.START or Gravity.TOP
             windowAnimations = android.R.style.Animation_Dialog
-            flags = (WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL // Allows touches to pass through
-                    or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE) // Prevents the window from taking focus (e.g., keyboard)
+            flags =
+                (WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL // Allows touches to pass through
+                        or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE) // Prevents the window from taking focus (e.g., keyboard)
 
             // Set window type correctly for overlays
             // Requires SYSTEM_ALERT_WINDOW permission
@@ -117,8 +131,12 @@ class ComposeFloatingWindow(
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Coroutine Exception: ${throwable.localizedMessage}", throwable)
     }
-    private val lifecycleCoroutineScope = CoroutineScope(SupervisorJob() +
-            AndroidUiDispatcher.CurrentThread + coroutineExceptionHandler)
+    private val coroutineContext = AndroidUiDispatcher.CurrentThread
+    private val lifecycleCoroutineScope = CoroutineScope(
+        SupervisorJob() +
+                coroutineContext + coroutineExceptionHandler
+    )
+    private val mutex = Mutex()
 
     override val defaultViewModelProviderFactory: ViewModelProvider.Factory by lazy {
         SavedStateViewModelFactory(
@@ -184,18 +202,36 @@ class ComposeFloatingWindow(
         private set
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    /**
+     * Helper class providing access to the display metrics for the floating window.
+     * 
+     * Used internally to calculate maximum coordinates and display dimensions
+     * for proper window positioning and bounds checking.
+     */
     val display = DisplayHelper(context, windowManager)
     private var composeView: ComposeView? = null // Hold a direct reference
     private var parentComposition: Recomposer? = null // Hold reference for disposal
 
     /**
      * The maximum X coordinate for the floating window.
+     * 
+     * This represents the rightmost position where the window can be placed
+     * while still remaining fully visible on screen. Calculated as the
+     * screen width minus the window's measured width.
+     * 
+     * @return The maximum X coordinate in pixels, or 0 if the window hasn't been measured yet.
      */
     val maxXCoordinate
         get() = display.metrics.widthPixels - decorView.measuredWidth
 
     /**
      * The maximum Y coordinate for the floating window.
+     * 
+     * This represents the bottommost position where the window can be placed
+     * while still remaining fully visible on screen. Calculated as the
+     * screen height minus the window's measured height.
+     * 
+     * @return The maximum Y coordinate in pixels, or 0 if the window hasn't been measured yet.
      */
     val maxYCoordinate
         get() = display.metrics.heightPixels - decorView.measuredHeight
@@ -223,7 +259,7 @@ class ComposeFloatingWindow(
             setViewTreeSavedStateRegistryOwner(this@ComposeFloatingWindow)
 
             // Create a Recomposer tied to the window's lifecycle scope
-            val recomposer = Recomposer(lifecycleCoroutineScope.coroutineContext)
+            val recomposer = Recomposer(coroutineContext)
             compositionContext = recomposer
             parentComposition = recomposer // Store for later disposal
 
@@ -231,18 +267,10 @@ class ComposeFloatingWindow(
             lifecycleCoroutineScope.launch {
                 try {
                     recomposer.runRecomposeAndApplyChanges()
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    Log.d(TAG, "Coroutine scope cancelled normally: ${e.message}")
                 } catch (e: Exception) {
-                    // Only log non-CancellationException errors as warnings,
-                    // since CancellationException is expected
-                    when (e) {
-                        is kotlinx.coroutines.CancellationException -> {
-                            Log.d(TAG, "Coroutine scope cancelled normally: ${e.message}")
-                        }
-
-                        else -> {
-                            Log.e(TAG, "Recomposer error", e)
-                        }
-                    }
+                    Log.e(TAG, "Recomposer error", e)
                 } finally {
                     Log.d(TAG, "Recomposer job finished.")
                 }
@@ -325,23 +353,44 @@ class ComposeFloatingWindow(
     }
 
     /**
+     * Updates the window coordinates to the specified position.
+     * 
+     * This method updates the window parameters with new coordinates and should
+     * typically be followed by a call to [update] to apply the changes to the
+     * displayed window. This method is thread-safe and uses a mutex to prevent
+     * concurrent modifications to window parameters.
+     * 
+     * @param left The new X coordinate (left position) for the window.
+     * @param top The new Y coordinate (top position) for the window.
+     */
+    fun updateCoordinate(left: Int, top: Int) = lifecycleCoroutineScope.launch {
+        mutex.withLock {
+            windowParams.x = left
+            windowParams.y = top
+        }
+    }
+
+    /**
      * Updates the layout of the floating window using the current [windowParams].
      * Call this after modifying [windowParams] (e.g., position or size) while the window is showing.
      *
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
      */
-    fun update() {
+    fun update() = lifecycleCoroutineScope.launch {
         checkDestroyed()
 
         if (!_isShowing.value) {
             Log.w(TAG, "Update called but window is not showing.")
-            return
+            return@launch
         }
         Log.d(TAG, "Updating window layout.")
-        try {
-            windowManager.updateViewLayout(decorView, windowParams)
-        } catch (e: Exception){
-            Log.e(TAG, "Error updating window layout: ${e.localizedMessage}", e)
+        mutex.withLock {
+            try {
+
+                windowManager.updateViewLayout(decorView, windowParams)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating window layout: ${e.localizedMessage}", e)
+            }
         }
     }
 
@@ -380,9 +429,26 @@ class ComposeFloatingWindow(
         }
     }
 
+    /**
+     * Checks if the overlay permission is available for displaying floating windows.
+     * 
+     * This method checks whether the application has the SYSTEM_ALERT_WINDOW permission
+     * required to display floating windows over other applications. On Android M (API 23)
+     * and above, this permission must be explicitly granted by the user.
+     * 
+     * @return `true` if the overlay permission is granted, `false` otherwise.
+     * @see requestOverlayPermission for requesting the permission if not available.
+     */
     fun isAvailable(): Boolean = Settings.canDrawOverlays(context)
 
     init {
+        // Warn if non-application context is used to prevent memory leaks
+        if (context !is Application && context.applicationContext != context) {
+            Log.w(
+                TAG, "Consider using applicationContext " +
+                        "instead of activity context to prevent memory leaks"
+            )
+        }
         // Restore state early in the lifecycle
         savedStateRegistryController.performRestore(null)
         // Mark the lifecycle as CREATED
@@ -433,13 +499,17 @@ class ComposeFloatingWindow(
         }
         Log.d(TAG, "Destroying window...")
 
-        // Hide the window if showing (ensures view is removed from WindowManager)
-        if(_isShowing.value){
-            hide()
-        }
-
         // Mark as destroyed immediately to prevent race conditions
         _isDestroyed.update { true }
+
+        // Hide the window if showing (ensures view is removed from WindowManager)
+        if (_isShowing.value) {
+            try {
+                hide()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error hiding window during destruction: ${e.localizedMessage}", e)
+            }
+        }
 
         // Dispose the composition
         disposeCompositionIfNeeded()
@@ -450,18 +520,10 @@ class ComposeFloatingWindow(
             lifecycleCoroutineScope.cancel(
                 kotlinx.coroutines.CancellationException("ComposeFloatingWindow destroyed")
             )
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            Log.d(TAG, "Coroutine scope cancelled normally: ${e.message}")
         } catch (e: Exception) {
-            // Only log non-CancellationException errors as warnings,
-            // since CancellationException is expected
-            when (e) {
-                is kotlinx.coroutines.CancellationException -> {
-                    Log.d(TAG, "Coroutine scope cancelled normally: ${e.message}")
-                }
-
-                else -> {
-                    Log.e(TAG, "Recomposer error", e)
-                }
-            }
+            Log.e(TAG, "Recomposer error", e)
         }
 
         // Move lifecycle to DESTROYED
