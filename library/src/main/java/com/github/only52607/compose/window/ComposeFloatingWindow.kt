@@ -432,7 +432,11 @@ class ComposeFloatingWindow(
 
         // Hide the window if showing (ensures view is removed from WindowManager)
         if (_isShowing.value) {
-            hide()
+            try {
+                hide()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error hiding window during destruction: ${e.localizedMessage}", e)
+            }
         }
 
         // Dispose the composition
