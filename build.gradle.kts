@@ -11,7 +11,7 @@ plugins {
     alias(libs.plugins.hilt.android) apply false
 }
 
-allprojects {
+subprojects {
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
