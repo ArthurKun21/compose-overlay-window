@@ -1,7 +1,3 @@
-hilt {
-    enableAggregatingTask = false
-}
-
 plugins {
     id("com.android.application")
     kotlin("android")
