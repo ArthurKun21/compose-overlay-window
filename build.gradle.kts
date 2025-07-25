@@ -10,7 +10,7 @@ plugins {
     alias(libs.plugins.ksp) apply false
 }
 
-subprojects {
+allprojects {
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
