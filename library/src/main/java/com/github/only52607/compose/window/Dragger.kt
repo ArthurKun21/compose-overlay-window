@@ -1,5 +1,6 @@
 package com.github.only52607.compose.window
 
+import android.util.Log
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -33,12 +34,19 @@ fun Modifier.dragFloatingWindow(
                 val left = targetX.coerceIn(0, floatingWindow.maxXCoordinate)
                 val top = targetY.coerceIn(0, floatingWindow.maxYCoordinate)
 
-                windowParams.x = left
-                windowParams.y = top
+                synchronized(windowParams) {
+                    windowParams.x = left
+                    windowParams.y = top
+                }
 
                 onDrag?.invoke(left, top)
 
-                floatingWindow.update()
+                try {
+                    floatingWindow.update()
+                } catch (e: Exception) {
+                    // Log but don't crash on update failures during drag
+                    Log.w(TAG, "Failed to update window position: ${e.message}")
+                }
             }
         }
 }
