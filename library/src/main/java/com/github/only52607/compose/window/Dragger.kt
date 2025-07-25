@@ -9,6 +9,29 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlin.math.roundToInt
 
+/**
+ * Adds drag functionality to make a floating window draggable.
+ * 
+ * This modifier enables the user to drag the floating window around the screen by
+ * applying touch gestures to the composable it's attached to. The window position
+ * is automatically constrained to stay within screen bounds.
+ * 
+ * Example usage:
+ * ```kotlin
+ * FloatingActionButton(
+ *     modifier = Modifier.dragFloatingWindow(),
+ *     onClick = { /* handle click */ }
+ * ) {
+ *     Icon(Icons.Filled.Call, "Call")
+ * }
+ * ```
+ * 
+ * @param onDragStart Callback invoked when drag gesture starts. Receives the initial touch offset.
+ * @param onDragEnd Callback invoked when drag gesture ends normally.
+ * @param onDragCancel Callback invoked when drag gesture is cancelled.
+ * @param onDrag Optional callback invoked during drag with the current window coordinates (left, top).
+ * @return A [Modifier] that enables drag functionality for the floating window.
+ */
 @Composable
 fun Modifier.dragFloatingWindow(
     onDragStart: (Offset) -> Unit = { },
