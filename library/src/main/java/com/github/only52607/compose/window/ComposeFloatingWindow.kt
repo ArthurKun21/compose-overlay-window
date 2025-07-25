@@ -377,6 +377,13 @@ class ComposeFloatingWindow(
     fun isAvailable(): Boolean = Settings.canDrawOverlays(context)
 
     init {
+        // Warn if non-application context is used to prevent memory leaks
+        if (context !is Application && context.applicationContext != context) {
+            Log.w(
+                TAG, "Consider using applicationContext " +
+                        "instead of activity context to prevent memory leaks"
+            )
+        }
         // Restore state early in the lifecycle
         savedStateRegistryController.performRestore(null)
         // Mark the lifecycle as CREATED
