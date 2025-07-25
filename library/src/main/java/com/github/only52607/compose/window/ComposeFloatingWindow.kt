@@ -233,18 +233,10 @@ class ComposeFloatingWindow(
             lifecycleCoroutineScope.launch {
                 try {
                     recomposer.runRecomposeAndApplyChanges()
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    Log.d(TAG, "Coroutine scope cancelled normally: ${e.message}")
                 } catch (e: Exception) {
-                    // Only log non-CancellationException errors as warnings,
-                    // since CancellationException is expected
-                    when (e) {
-                        is kotlinx.coroutines.CancellationException -> {
-                            Log.d(TAG, "Coroutine scope cancelled normally: ${e.message}")
-                        }
-
-                        else -> {
-                            Log.e(TAG, "Recomposer error", e)
-                        }
-                    }
+                    Log.e(TAG, "Recomposer error", e)
                 } finally {
                     Log.d(TAG, "Recomposer job finished.")
                 }
@@ -452,18 +444,10 @@ class ComposeFloatingWindow(
             lifecycleCoroutineScope.cancel(
                 kotlinx.coroutines.CancellationException("ComposeFloatingWindow destroyed")
             )
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            Log.d(TAG, "Coroutine scope cancelled normally: ${e.message}")
         } catch (e: Exception) {
-            // Only log non-CancellationException errors as warnings,
-            // since CancellationException is expected
-            when (e) {
-                is kotlinx.coroutines.CancellationException -> {
-                    Log.d(TAG, "Coroutine scope cancelled normally: ${e.message}")
-                }
-
-                else -> {
-                    Log.e(TAG, "Recomposer error", e)
-                }
-            }
+            Log.e(TAG, "Recomposer error", e)
         }
 
         // Move lifecycle to DESTROYED
