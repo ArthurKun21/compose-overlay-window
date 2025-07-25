@@ -80,8 +80,6 @@ class ComposeFloatingWindow(
     AutoCloseable {
 
     companion object {
-        private const val TAG = "ComposeFloatingWindow"
-
         /**
          * Creates default [WindowManager.LayoutParams] suitable for a basic floating window.
          * Sets WRAP_CONTENT dimensions, translucency, top-start gravity, default animations,
