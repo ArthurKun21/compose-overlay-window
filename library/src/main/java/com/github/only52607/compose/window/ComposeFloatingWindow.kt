@@ -116,9 +116,10 @@ class ComposeFloatingWindow(
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Coroutine Exception: ${throwable.localizedMessage}", throwable)
     }
+    private val coroutineContext = AndroidUiDispatcher.CurrentThread
     private val lifecycleCoroutineScope = CoroutineScope(
         SupervisorJob() +
-                AndroidUiDispatcher.CurrentThread + coroutineExceptionHandler
+                coroutineContext + coroutineExceptionHandler
     )
 
     override val defaultViewModelProviderFactory: ViewModelProvider.Factory by lazy {
@@ -224,7 +225,7 @@ class ComposeFloatingWindow(
             setViewTreeSavedStateRegistryOwner(this@ComposeFloatingWindow)
 
             // Create a Recomposer tied to the window's lifecycle scope
-            val recomposer = Recomposer(lifecycleCoroutineScope.coroutineContext)
+            val recomposer = Recomposer(coroutineContext)
             compositionContext = recomposer
             parentComposition = recomposer // Store for later disposal
 
