@@ -10,7 +10,7 @@ hilt {
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    kotlin("android")
     alias(libs.plugins.compose.compiler)
 
     alias(libs.plugins.hilt.android)
