@@ -321,6 +321,13 @@ class ComposeFloatingWindow(
         }
     }
 
+    fun updateCoordinate(left: Int, top: Int) = lifecycleCoroutineScope.launch {
+        mutex.withLock {
+            windowParams.x = left
+            windowParams.y = top
+        }
+    }
+
     /**
      * Updates the layout of the floating window using the current [windowParams].
      * Call this after modifying [windowParams] (e.g., position or size) while the window is showing.

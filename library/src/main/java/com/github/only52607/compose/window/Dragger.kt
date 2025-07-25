@@ -34,8 +34,7 @@ fun Modifier.dragFloatingWindow(
                 val left = targetX.coerceIn(0, floatingWindow.maxXCoordinate)
                 val top = targetY.coerceIn(0, floatingWindow.maxYCoordinate)
 
-                windowParams.x = left
-                windowParams.y = top
+                floatingWindow.updateCoordinate(left, top)
 
                 onDrag?.invoke(left, top)
 
