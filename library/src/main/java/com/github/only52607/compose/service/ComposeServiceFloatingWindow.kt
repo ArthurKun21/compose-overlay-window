@@ -56,7 +56,7 @@ import kotlinx.coroutines.sync.withLock
  *
  * Example usage with `use`:
  * ```kotlin
- * val floatingWindow = ComposeFloatingWindow(context)
+ * val floatingWindow = ComposeServiceFloatingWindow(context)
  * floatingWindow.use { window -> // destroy() is called automatically at the end of this block
  *     window.setContent { /* Your Composable UI */ }
  *     window.show()
@@ -70,7 +70,7 @@ import kotlinx.coroutines.sync.withLock
  * @param context The context used for creating the window and accessing system services.
  *                An application context is preferred to avoid leaks.
  * @param windowParams The layout parameters for the floating window. Defaults are provided
- *                     by [ComposeFloatingWindow.defaultLayoutParams].
+ *                     by [ComposeServiceFloatingWindow.defaultLayoutParams].
  */
 class ComposeServiceFloatingWindow(
     private val context: Context,
@@ -437,13 +437,13 @@ class ComposeServiceFloatingWindow(
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
         // Enable SavedStateHandles for ViewModels
         enableSavedStateHandles()
-        Log.d(SERVICE_TAG, "ComposeFloatingWindow initialized.")
+        Log.d(SERVICE_TAG, "ComposeServiceFloatingWindow initialized.")
     }
 
     /** Throws an [IllegalStateException] if the window has been destroyed. */
     private fun checkDestroyed() {
         check(!_isDestroyed.value) {
-            "ComposeFloatingWindow has been destroyed and cannot be used."
+            "ComposeServiceFloatingWindow has been destroyed and cannot be used."
         }
     }
 
@@ -471,7 +471,7 @@ class ComposeServiceFloatingWindow(
      * 5. Clears the [ViewModelStore], destroying associated ViewModels.
      * 6. Cleans up internal references.
      *
-     * **Once destroyed, this instance cannot be reused.** Create a new `ComposeFloatingWindow`
+     * **Once destroyed, this instance cannot be reused.** Create a new `ComposeServiceFloatingWindow`
      * instance if you need to show a floating window again.
      */
     override fun close() {
@@ -504,7 +504,7 @@ class ComposeServiceFloatingWindow(
         Log.d(SERVICE_TAG, "Cancelling lifecycle coroutine scope.")
         try {// Explicit cancellation
             lifecycleCoroutineScope.cancel(
-                kotlinx.coroutines.CancellationException("ComposeFloatingWindow destroyed")
+                kotlinx.coroutines.CancellationException("ComposeServiceFloatingWindow destroyed")
             )
         } catch (e: kotlinx.coroutines.CancellationException) {
             Log.d(SERVICE_TAG, "Coroutine scope cancelled normally: ${e.message}")
@@ -526,6 +526,6 @@ class ComposeServiceFloatingWindow(
         // windowManager is a system service, no need to clear.
         // savedStateRegistryController is tied to the lifecycle/owner, should be handled.
 
-        Log.d(SERVICE_TAG, "ComposeFloatingWindow destroyed successfully.")
+        Log.d(SERVICE_TAG, "ComposeServiceFloatingWindow destroyed successfully.")
     }
 }
