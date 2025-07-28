@@ -7,9 +7,10 @@ import com.github.only52607.compose.window.hilt.inject.ui.FloatingWindowContent
 import com.github.only52607.compose.window.hilt.inject.ui.FloatingWindowViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ServiceScoped
+import javax.inject.Inject
 
 @ServiceScoped
-class ServiceOverlay(
+class ServiceOverlay @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     @param:ApplicationContext private val context: Context,
 ) {
