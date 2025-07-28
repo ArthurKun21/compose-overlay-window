@@ -244,7 +244,7 @@ class ComposeFloatingWindow(
      * and connects the view to this window's lifecycle, ViewModel store, and saved state registry.
      *
      * @param content The composable function defining the UI of the floating window.
-     * @throws IllegalStateException if called after [destroy] or [close] has been invoked.
+     * @throws IllegalStateException if called after [checkDestroyed] or [close] has been invoked.
      */
     fun setContent(content: @Composable () -> Unit) {
         checkDestroyed()
