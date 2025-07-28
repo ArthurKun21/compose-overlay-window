@@ -15,29 +15,44 @@ class ServiceOverlay @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {
 
-    private val viewModel by lazy {
-        FloatingWindowViewModel(userPreferencesRepository)
+    private var viewModel: FloatingWindowViewModel? = null
+    private var floatingWindow: ComposeServiceFloatingWindow? = null
+
+
+    init {
+        floatingWindow = createFloatingWindow()
     }
 
-    private val floatingWindow by lazy {
-        createFloatingWindow()
-    }
+    private fun createFloatingWindow(): ComposeServiceFloatingWindow {
+        // Create ViewModel only when needed
+        viewModel = FloatingWindowViewModel(userPreferencesRepository)
 
-    private fun createFloatingWindow(): ComposeServiceFloatingWindow =
-        ComposeServiceFloatingWindow(context).apply {
+        return ComposeServiceFloatingWindow(context).apply {
             setContent {
-                FloatingWindowContent(viewModel)
+                viewModel?.let { vm ->
+                    FloatingWindowContent(vm)
+                }
             }
         }
+    }
 
     fun show() {
-        if (!floatingWindow.isShowing.value) {
-            floatingWindow.show()
+        if (floatingWindow == null) {
+            floatingWindow = createFloatingWindow()
+        }
+        floatingWindow?.let { window ->
+            if (!window.isShowing.value) {
+                window.show()
+            }
         }
     }
 
     fun close() {
-        floatingWindow.hide()
-        floatingWindow.close()
+        floatingWindow?.let { window ->
+            window.hide()
+            window.close()
+        }
+        floatingWindow = null
+        viewModel = null
     }
 }
