@@ -18,4 +18,5 @@ rootProject.name = "ComposeFloatingWindow"
 include(":app")
 include(":app-service")
 include(":app-service-hilt")
+include(":app-service-hilt-inject")
 include(":library")
