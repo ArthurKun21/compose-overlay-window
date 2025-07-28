@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [app, app-service, app-service-hilt]
+        module: [app, app-service, app-service-hilt, app-service-hilt-inject]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
