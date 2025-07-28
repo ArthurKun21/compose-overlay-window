@@ -1,4 +1,4 @@
-package com.github.only52607.compose.window.hilt.ui.theme
+package com.github.only52607.compose.window.hilt.inject.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

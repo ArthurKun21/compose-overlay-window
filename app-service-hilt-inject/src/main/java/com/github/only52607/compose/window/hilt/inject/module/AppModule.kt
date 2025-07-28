@@ -1,4 +1,4 @@
-package com.github.only52607.compose.window.hilt.module
+package com.github.only52607.compose.window.hilt.inject.module
 
 import android.content.Context
 import androidx.datastore.core.DataStore

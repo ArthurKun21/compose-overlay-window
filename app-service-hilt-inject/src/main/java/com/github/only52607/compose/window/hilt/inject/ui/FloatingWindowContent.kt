@@ -1,4 +1,4 @@
-package com.github.only52607.compose.window.hilt.ui
+package com.github.only52607.compose.window.hilt.inject.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.only52607.compose.window.LocalFloatingWindow
 import com.github.only52607.compose.window.dragFloatingWindow
-import com.github.only52607.compose.window.hilt.ui.theme.ComposeFloatingWindowTheme
+import com.github.only52607.compose.window.hilt.inject.ui.theme.ComposeFloatingWindowTheme
 
 @Composable
 fun FloatingWindowContent(

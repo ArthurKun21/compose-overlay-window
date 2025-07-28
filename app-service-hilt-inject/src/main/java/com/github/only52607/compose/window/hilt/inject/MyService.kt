@@ -1,13 +1,13 @@
-package com.github.only52607.compose.window.hilt
+package com.github.only52607.compose.window.hilt.inject
 
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import com.github.only52607.compose.window.ComposeFloatingWindow
-import com.github.only52607.compose.window.hilt.repository.UserPreferencesRepository
-import com.github.only52607.compose.window.hilt.ui.FloatingWindowContent
-import com.github.only52607.compose.window.hilt.ui.FloatingWindowViewModel
+import com.github.only52607.compose.window.hilt.inject.repository.UserPreferencesRepository
+import com.github.only52607.compose.window.hilt.inject.ui.FloatingWindowContent
+import com.github.only52607.compose.window.hilt.inject.ui.FloatingWindowViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

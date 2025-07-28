@@ -1,4 +1,4 @@
-package com.github.only52607.compose.window.hilt
+package com.github.only52607.compose.window.hilt.inject
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -24,9 +24,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.only52607.compose.window.checkOverlayPermission
-import com.github.only52607.compose.window.hilt.repository.UserPreferencesRepository
-import com.github.only52607.compose.window.hilt.ui.DialogPermission
-import com.github.only52607.compose.window.hilt.ui.theme.ComposeFloatingWindowTheme
+import com.github.only52607.compose.window.hilt.inject.repository.UserPreferencesRepository
+import com.github.only52607.compose.window.hilt.inject.ui.DialogPermission
+import com.github.only52607.compose.window.hilt.inject.ui.theme.ComposeFloatingWindowTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.distinctUntilChanged
 import javax.inject.Inject

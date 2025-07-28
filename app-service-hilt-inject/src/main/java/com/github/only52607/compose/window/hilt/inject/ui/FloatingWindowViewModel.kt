@@ -1,15 +1,13 @@
-package com.github.only52607.compose.window.hilt.ui
+package com.github.only52607.compose.window.hilt.inject.ui
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.only52607.compose.window.hilt.repository.UserPreferencesRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.github.only52607.compose.window.hilt.inject.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 class FloatingWindowViewModel(
     private val userPreferencesRepository: UserPreferencesRepository,

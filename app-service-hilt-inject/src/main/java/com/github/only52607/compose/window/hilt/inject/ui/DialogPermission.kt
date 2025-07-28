@@ -1,4 +1,4 @@
-package com.github.only52607.compose.window.hilt.ui
+package com.github.only52607.compose.window.hilt.inject.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -14,7 +14,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.github.only52607.compose.window.checkOverlayPermission
-import com.github.only52607.compose.window.hilt.R
+import com.github.only52607.compose.window.hilt.inject.R
 import com.github.only52607.compose.window.requestOverlayPermission
 
 @Composable

@@ -1,4 +1,4 @@
-package com.github.only52607.compose.window.hilt
+package com.github.only52607.compose.window.hilt.inject
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
