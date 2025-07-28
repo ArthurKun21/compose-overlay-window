@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.only52607.compose.service.LocalServiceFloatingWindow
-import com.github.only52607.compose.window.dragFloatingWindow
+import com.github.only52607.compose.service.dragServiceFloatingWindow
 import com.github.only52607.compose.window.hilt.inject.ui.theme.ComposeFloatingWindowTheme
 
 @Composable
@@ -43,7 +43,7 @@ fun FloatingWindowContent(
             )
         }
         FloatingActionButton(
-            modifier = Modifier.dragFloatingWindow(),
+            modifier = Modifier.dragServiceFloatingWindow(),
             onClick = {
                 model.showDialog(!darkMode)
             },
