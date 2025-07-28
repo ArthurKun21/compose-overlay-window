@@ -1,7 +1,7 @@
 package com.github.only52607.compose.window.hilt.inject.service
 
 import android.content.Context
-import com.github.only52607.compose.window.ComposeFloatingWindow
+import com.github.only52607.compose.service.ComposeServiceFloatingWindow
 import com.github.only52607.compose.window.hilt.inject.repository.UserPreferencesRepository
 import com.github.only52607.compose.window.hilt.inject.ui.FloatingWindowContent
 import com.github.only52607.compose.window.hilt.inject.ui.FloatingWindowViewModel
@@ -22,8 +22,8 @@ class ServiceOverlay(
         createFloatingWindow()
     }
 
-    private fun createFloatingWindow(): ComposeFloatingWindow =
-        ComposeFloatingWindow(context).apply {
+    private fun createFloatingWindow(): ComposeServiceFloatingWindow =
+        ComposeServiceFloatingWindow(context).apply {
             setContent {
                 FloatingWindowContent(viewModel)
             }

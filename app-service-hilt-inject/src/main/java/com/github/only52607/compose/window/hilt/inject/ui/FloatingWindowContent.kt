@@ -13,7 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.github.only52607.compose.window.LocalFloatingWindow
+import com.github.only52607.compose.service.LocalServiceFloatingWindow
 import com.github.only52607.compose.window.dragFloatingWindow
 import com.github.only52607.compose.window.hilt.inject.ui.theme.ComposeFloatingWindowTheme
 
@@ -21,7 +21,7 @@ import com.github.only52607.compose.window.hilt.inject.ui.theme.ComposeFloatingW
 fun FloatingWindowContent(
     model: FloatingWindowViewModel
 ) {
-    val floatingWindow = LocalFloatingWindow.current
+    val floatingWindow = LocalServiceFloatingWindow.current
 
     val darkMode by model.darkMode.collectAsStateWithLifecycle(false)
 
