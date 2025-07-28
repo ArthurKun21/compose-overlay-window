@@ -3,6 +3,7 @@
 ## Initial Setup
 
 This is a sample project on how to use `compose-floating-window` on a service for long running operations
+while having it injected with hilt.
 
 1. Create a new service. Like [this](src/main/java/com/github/only52607/compose/window/service/MyService.kt) for example
         
@@ -15,7 +16,7 @@ This is a sample project on how to use `compose-floating-window` on a service fo
 3. Declare the service in the manifest file
 
     ```xml
-    <service android:name=".MyService" />
+    <service android:name=".service.MyService" />
     ```
    
 4. Follow the `MyService` sample on how to use it on a service.
