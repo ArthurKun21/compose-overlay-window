@@ -4,10 +4,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import com.github.only52607.compose.window.ComposeFloatingWindow
-import com.github.only52607.compose.window.hilt.inject.repository.UserPreferencesRepository
-import com.github.only52607.compose.window.hilt.inject.ui.FloatingWindowContent
-import com.github.only52607.compose.window.hilt.inject.ui.FloatingWindowViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,27 +30,12 @@ class MyService : Service() {
     }
 
     @Inject
-    lateinit var userPreferencesRepository: UserPreferencesRepository
-
-    private val viewModel by lazy {
-        FloatingWindowViewModel(userPreferencesRepository)
-    }
-
-    private val floatingWindow by lazy {
-        createFloatingWindow()
-    }
-
-    private fun createFloatingWindow(): ComposeFloatingWindow =
-        ComposeFloatingWindow(this).apply {
-            setContent {
-                FloatingWindowContent(viewModel)
-            }
-        }
+    lateinit var serviceOverlay: ServiceOverlay
 
     override fun onCreate() {
         super.onCreate()
         _serviceStarted.update { true }
-        floatingWindow.show()
+        serviceOverlay.show()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -62,7 +43,7 @@ class MyService : Service() {
     override fun onDestroy() {
         _serviceStarted.update { false }
         // Call close for cleanup and it will hide it in the process
-        floatingWindow.close()
+        serviceOverlay.close()
         super.onDestroy()
     }
 }
