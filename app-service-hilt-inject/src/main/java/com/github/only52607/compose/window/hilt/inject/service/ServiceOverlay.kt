@@ -37,6 +37,7 @@ class ServiceOverlay @Inject constructor(
     }
 
     fun close() {
+        floatingWindow.hide()
         floatingWindow.close()
     }
 }
