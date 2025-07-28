@@ -1,4 +1,4 @@
-package com.github.only52607.compose.window.hilt.inject
+package com.github.only52607.compose.window.hilt.inject.service
 
 import android.app.Service
 import android.content.Context
