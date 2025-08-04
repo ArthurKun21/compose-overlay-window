@@ -1,5 +1,6 @@
 package com.github.only52607.compose.window.hilt.inject.ui
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,6 +13,9 @@ import kotlinx.coroutines.launch
 class FloatingWindowViewModel(
     private val userPreferencesRepository: UserPreferencesRepository,
 ) : ViewModel() {
+
+    val location: Flow<Pair<Int, Int>>
+        get() = userPreferencesRepository.locationFlow
 
     val darkMode: Flow<Boolean>
         get() = userPreferencesRepository.darkModeFlow
@@ -27,5 +31,10 @@ class FloatingWindowViewModel(
 
     fun dismissDialog() {
         _dialogVisible = false
+    }
+
+    fun updateLocation(x: Int, y: Int) = viewModelScope.launch {
+        userPreferencesRepository.setLocation(x, y)
+        Log.d("FloatingWindowViewModel", "Location updated to: ($x, $y)")
     }
 }

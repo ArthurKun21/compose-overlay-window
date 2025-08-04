@@ -1,12 +1,20 @@
 package com.github.only52607.compose.window.hilt.inject.service
 
 import android.content.Context
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import com.github.only52607.compose.service.ComposeServiceFloatingWindow
 import com.github.only52607.compose.window.hilt.inject.repository.UserPreferencesRepository
 import com.github.only52607.compose.window.hilt.inject.ui.FloatingWindowContent
 import com.github.only52607.compose.window.hilt.inject.ui.FloatingWindowViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ServiceScoped
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @ServiceScoped
@@ -29,8 +37,23 @@ class ServiceOverlay @Inject constructor(
 
         return ComposeServiceFloatingWindow(context).apply {
             setContent {
+                val scope = rememberCoroutineScope()
+                var initialization by remember { mutableStateOf(false) }
                 viewModel?.let { vm ->
-                    FloatingWindowContent(vm)
+                    LaunchedEffect(Unit) {
+                        val job = scope.launch {
+                            vm.location.first().let { location ->
+                                windowParams.x = location.first
+                                windowParams.y = location.second
+                                update()
+                            }
+                        }
+                        job.join()
+                        initialization = true
+                    }
+                    if (initialization) {
+                        FloatingWindowContent(vm)
+                    }
                 }
             }
         }
