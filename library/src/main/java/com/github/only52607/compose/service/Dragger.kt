@@ -1,6 +1,5 @@
 package com.github.only52607.compose.service
 
-import android.util.Log
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -58,13 +57,6 @@ fun Modifier.dragServiceFloatingWindow(
                 floatingWindow.updateCoordinate(left, top)
 
                 onDrag?.invoke(left, top)
-
-                try {
-                    floatingWindow.update()
-                } catch (e: Exception) {
-                    // Log but don't crash on update failures during drag
-                    Log.w(SERVICE_TAG, "Failed to update window position: ${e.message}")
-                }
             }
         }
 }
