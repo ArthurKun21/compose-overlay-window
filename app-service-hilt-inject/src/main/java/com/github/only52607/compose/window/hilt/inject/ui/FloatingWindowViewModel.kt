@@ -1,6 +1,5 @@
 package com.github.only52607.compose.window.hilt.inject.ui
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -35,6 +34,5 @@ class FloatingWindowViewModel(
 
     fun updateLocation(x: Int, y: Int) = viewModelScope.launch {
         userPreferencesRepository.setLocation(x, y)
-        Log.d("FloatingWindowViewModel", "Location updated to: ($x, $y)")
     }
 }
