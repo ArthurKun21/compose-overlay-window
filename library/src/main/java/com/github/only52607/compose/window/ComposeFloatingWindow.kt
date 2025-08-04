@@ -84,18 +84,18 @@ class ComposeFloatingWindow(
     companion object {
         /**
          * Creates default [WindowManager.LayoutParams] suitable for a basic floating window.
-         * 
+         *
          * Sets WRAP_CONTENT dimensions, translucency, top-start gravity, default animations,
          * and flags for non-modal, non-focusable interaction.
          * Also sets the appropriate window type based on SDK version and context type.
-         * 
+         *
          * The created parameters include:
          * - WRAP_CONTENT dimensions for both width and height
          * - TRANSLUCENT pixel format for transparency support
          * - START|TOP gravity for positioning
          * - NOT_TOUCH_MODAL and NOT_FOCUSABLE flags
          * - Appropriate window type for overlay permissions
-         * 
+         *
          * @param context The context used to determine the appropriate window type.
          *                Activity contexts use default window type, while non-Activity
          *                contexts use overlay window types that require SYSTEM_ALERT_WINDOW permission.
@@ -202,9 +202,10 @@ class ComposeFloatingWindow(
         private set
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
     /**
      * Helper class providing access to the display metrics for the floating window.
-     * 
+     *
      * Used internally to calculate maximum coordinates and display dimensions
      * for proper window positioning and bounds checking.
      */
@@ -214,11 +215,11 @@ class ComposeFloatingWindow(
 
     /**
      * The maximum X coordinate for the floating window.
-     * 
+     *
      * This represents the rightmost position where the window can be placed
      * while still remaining fully visible on screen. Calculated as the
      * screen width minus the window's measured width.
-     * 
+     *
      * @return The maximum X coordinate in pixels, or 0 if the window hasn't been measured yet.
      */
     val maxXCoordinate
@@ -226,11 +227,11 @@ class ComposeFloatingWindow(
 
     /**
      * The maximum Y coordinate for the floating window.
-     * 
+     *
      * This represents the bottommost position where the window can be placed
      * while still remaining fully visible on screen. Calculated as the
      * screen height minus the window's measured height.
-     * 
+     *
      * @return The maximum Y coordinate in pixels, or 0 if the window hasn't been measured yet.
      */
     val maxYCoordinate
@@ -354,20 +355,18 @@ class ComposeFloatingWindow(
 
     /**
      * Updates the window coordinates to the specified position.
-     * 
+     *
      * This method updates the window parameters with new coordinates and should
      * typically be followed by a call to [update] to apply the changes to the
      * displayed window. This method is thread-safe and uses a mutex to prevent
      * concurrent modifications to window parameters.
-     * 
+     *
      * @param left The new X coordinate (left position) for the window.
      * @param top The new Y coordinate (top position) for the window.
      */
-    fun updateCoordinate(left: Int, top: Int) = lifecycleCoroutineScope.launch {
-        mutex.withLock {
-            windowParams.x = left
-            windowParams.y = top
-        }
+    fun updateCoordinate(left: Int, top: Int) {
+        windowParams.x = left
+        windowParams.y = top
     }
 
     /**
@@ -431,11 +430,11 @@ class ComposeFloatingWindow(
 
     /**
      * Checks if the overlay permission is available for displaying floating windows.
-     * 
+     *
      * This method checks whether the application has the SYSTEM_ALERT_WINDOW permission
      * required to display floating windows over other applications. On Android M (API 23)
      * and above, this permission must be explicitly granted by the user.
-     * 
+     *
      * @return `true` if the overlay permission is granted, `false` otherwise.
      * @see requestOverlayPermission for requesting the permission if not available.
      */

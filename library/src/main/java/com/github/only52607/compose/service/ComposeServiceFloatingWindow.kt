@@ -345,11 +345,9 @@ class ComposeServiceFloatingWindow(
      * @param left The new X coordinate (left position) for the window.
      * @param top The new Y coordinate (top position) for the window.
      */
-    fun updateCoordinate(left: Int, top: Int) = lifecycleCoroutineScope.launch {
-        mutex.withLock {
-            windowParams.x = left
-            windowParams.y = top
-        }
+    fun updateCoordinate(left: Int, top: Int) {
+        windowParams.x = left
+        windowParams.y = top
     }
 
     /**
