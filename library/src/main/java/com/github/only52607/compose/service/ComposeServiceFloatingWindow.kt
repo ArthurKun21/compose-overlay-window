@@ -337,18 +337,21 @@ class ComposeServiceFloatingWindow(
     /**
      * Updates the window coordinates to the specified position.
      *
-     * This method updates the window parameters with new coordinates and should
-     * typically be followed by a call to [update] to apply the changes to the
-     * displayed window. This method is thread-safe and uses a mutex to prevent
-     * concurrent modifications to window parameters.
+     * This method updates the window parameters with new coordinates and followed
+     * by a call to [update] to apply the changes to the displayed window.
      *
      * @param left The new X coordinate (left position) for the window.
      * @param top The new Y coordinate (top position) for the window.
      */
-    fun updateCoordinate(left: Int, top: Int) = lifecycleCoroutineScope.launch {
-        mutex.withLock {
-            windowParams.x = left
-            windowParams.y = top
+    fun updateCoordinate(left: Int, top: Int) {
+        windowParams.x = left
+        windowParams.y = top
+
+        try {
+            update()
+        } catch (e: Exception) {
+            // Log but don't crash on update failures during drag
+            Log.w(SERVICE_TAG, "Failed to update window position: ${e.message}")
         }
     }
 

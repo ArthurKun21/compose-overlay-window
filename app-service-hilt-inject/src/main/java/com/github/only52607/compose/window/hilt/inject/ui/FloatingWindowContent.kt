@@ -43,7 +43,12 @@ fun FloatingWindowContent(
             )
         }
         FloatingActionButton(
-            modifier = Modifier.dragServiceFloatingWindow(),
+            modifier = Modifier
+                .dragServiceFloatingWindow(
+                    onDrag = { x, y ->
+                        model.updateLocation(x, y)
+                    }
+                ),
             onClick = {
                 model.showDialog(!darkMode)
             },

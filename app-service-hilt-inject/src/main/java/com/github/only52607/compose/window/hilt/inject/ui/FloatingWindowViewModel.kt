@@ -13,6 +13,9 @@ class FloatingWindowViewModel(
     private val userPreferencesRepository: UserPreferencesRepository,
 ) : ViewModel() {
 
+    val location: Flow<Pair<Int, Int>>
+        get() = userPreferencesRepository.locationFlow
+
     val darkMode: Flow<Boolean>
         get() = userPreferencesRepository.darkModeFlow
 
@@ -27,5 +30,9 @@ class FloatingWindowViewModel(
 
     fun dismissDialog() {
         _dialogVisible = false
+    }
+
+    fun updateLocation(x: Int, y: Int) = viewModelScope.launch {
+        userPreferencesRepository.setLocation(x, y)
     }
 }
