@@ -356,7 +356,7 @@ class ComposeFloatingWindow(
     /**
      * Updates the window coordinates to the specified position.
      *
-     * his method updates the window parameters with new coordinates and followed
+     * This method updates the window parameters with new coordinates and followed
      * by a call to [update] to apply the changes to the displayed window.
      *
      * @param left The new X coordinate (left position) for the window.
