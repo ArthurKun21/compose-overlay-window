@@ -23,7 +23,7 @@ jobs:
         module: [app, app-service, app-service-hilt, app-service-hilt-inject]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         
       - name: Validate Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v4
