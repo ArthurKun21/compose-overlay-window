@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.github.only52607.compose.window.checkOverlayPermission
+import com.github.only52607.compose.core.checkOverlayPermission
 import com.github.only52607.compose.window.service.ui.DialogPermission
 import com.github.only52607.compose.window.service.ui.theme.ComposeFloatingWindowTheme
 
