@@ -334,9 +334,6 @@ open class CoreFloatingWindow(
         }
         Log.d(tag, "Destroying window...")
 
-        // Mark as destroyed immediately to prevent race conditions
-        _isDestroyed.update { true }
-
         // Hide the window if showing (ensures view is removed from WindowManager)
         if (_isShowing.value) {
             try {
@@ -349,6 +346,9 @@ open class CoreFloatingWindow(
                 )
             }
         }
+
+        // Mark as destroyed immediately to prevent race conditions
+        _isDestroyed.update { true }
 
         // Dispose the composition
         disposeCompositionIfNeeded()
