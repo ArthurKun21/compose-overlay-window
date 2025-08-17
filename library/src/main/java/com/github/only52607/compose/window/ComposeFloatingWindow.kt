@@ -19,6 +19,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.github.only52607.compose.core.CoreFloatingWindow
 import com.github.only52607.compose.core.defaultLayoutParams
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Manages a floating window that can display Jetpack Compose content overlaying other applications.
@@ -94,7 +95,7 @@ class ComposeFloatingWindow(
             lifecycleCoroutineScope.launch {
                 try {
                     recomposer.runRecomposeAndApplyChanges()
-                } catch (e: kotlinx.coroutines.CancellationException) {
+                } catch (e: CancellationException) {
                     Log.d(TAG, "Coroutine scope cancelled normally: ${e.message}")
                 } catch (e: Exception) {
                     Log.e(TAG, "Recomposer error", e)

@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.coroutines.cancellation.CancellationException
 
 open class CoreFloatingWindow(
     private val context: Context,
@@ -357,9 +358,9 @@ open class CoreFloatingWindow(
         Log.d(tag, "Cancelling lifecycle coroutine scope.")
         try {// Explicit cancellation
             lifecycleCoroutineScope.cancel(
-                kotlinx.coroutines.CancellationException("FloatingWindow destroyed")
+                CancellationException("FloatingWindow destroyed")
             )
-        } catch (e: kotlinx.coroutines.CancellationException) {
+        } catch (e: CancellationException) {
             Log.d(tag, "Coroutine scope cancelled normally: ${e.message}")
         } catch (e: Exception) {
             Log.e(tag, "Recomposer error", e)
