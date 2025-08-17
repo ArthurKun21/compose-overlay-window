@@ -13,9 +13,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.github.only52607.compose.core.checkOverlayPermission
+import com.github.only52607.compose.core.requestOverlayPermission
 import com.github.only52607.compose.window.app.R
-import com.github.only52607.compose.window.checkOverlayPermission
-import com.github.only52607.compose.window.requestOverlayPermission
 
 @Composable
 fun DialogPermission(
