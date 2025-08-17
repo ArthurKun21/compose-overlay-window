@@ -51,6 +51,7 @@ class ComposeServiceFloatingWindow(
 ) : CoreFloatingWindow(
     context = context,
     windowParams = windowParams,
+    tag = SERVICE_TAG
 ) {
     /**
      * Sets the Jetpack Compose content for the floating window.
@@ -117,3 +118,5 @@ class ComposeServiceFloatingWindow(
         }
     }
 }
+
+private const val SERVICE_TAG = "ComposeServiceFloatingWindow"

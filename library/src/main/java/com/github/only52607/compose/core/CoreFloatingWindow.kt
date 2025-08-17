@@ -18,7 +18,6 @@ import androidx.lifecycle.enableSavedStateHandles
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
-import com.github.only52607.compose.service.SERVICE_TAG
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -34,6 +33,7 @@ import kotlinx.coroutines.sync.withLock
 open class CoreFloatingWindow(
     private val context: Context,
     open val windowParams: WindowManager.LayoutParams,
+    private val tag: String = "CoreFloatingWindow",
 ) : SavedStateRegistryOwner,
     ViewModelStoreOwner,
     AutoCloseable {
@@ -43,7 +43,7 @@ open class CoreFloatingWindow(
     // Use a SupervisorJob so failure of one child doesn't cause others to fail
     // Use a custom scope tied to the window's lifecycle for managing window-specific coroutines
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.e(SERVICE_TAG, "Coroutine Exception: ${throwable.localizedMessage}", throwable)
+        Log.e(tag, "Coroutine Exception: ${throwable.localizedMessage}", throwable)
     }
     internal val coroutineContext = AndroidUiDispatcher.CurrentThread
     internal val lifecycleCoroutineScope = CoroutineScope(
@@ -151,24 +151,24 @@ open class CoreFloatingWindow(
 
         if (!isAvailable()) {
             Log.w(
-                SERVICE_TAG,
+                tag,
                 "Overlay permission (SYSTEM_ALERT_WINDOW) not granted. Cannot show window."
             )
             return
         }
 
         if (_isShowing.value) {
-            Log.d(SERVICE_TAG, "Window already showing, updating layout.")
+            Log.d(tag, "Window already showing, updating layout.")
             update() // Ensure layout is up-to-date if show is called again
             return
         }
 
-        Log.d(SERVICE_TAG, "Showing window.")
+        Log.d(tag, "Showing window.")
 
         try {
             // Ensure the view doesn't have a parent before adding
             if (decorView.parent != null) {
-                Log.w(SERVICE_TAG, "DecorView already has a parent. Removing it.")
+                Log.w(tag, "DecorView already has a parent. Removing it.")
                 (decorView.parent as? ViewGroup)?.removeView(decorView)
             }
             windowManager.addView(decorView, windowParams)
@@ -178,7 +178,7 @@ open class CoreFloatingWindow(
             _isShowing.update { true }
         } catch (e: Exception) {
             // Catch potential exceptions from WindowManager (e.g., security, bad token)
-            Log.e(SERVICE_TAG, "Error showing window: ${e.localizedMessage}", e)
+            Log.e(tag, "Error showing window: ${e.localizedMessage}", e)
             // Reset state if adding failed
             _isShowing.update { false }
         }
@@ -201,7 +201,7 @@ open class CoreFloatingWindow(
             update()
         } catch (e: Exception) {
             // Log but don't crash on update failures during drag
-            Log.w(SERVICE_TAG, "Failed to update window position: ${e.message}")
+            Log.w(tag, "Failed to update window position: ${e.message}")
         }
     }
 
@@ -215,16 +215,16 @@ open class CoreFloatingWindow(
         checkDestroyed()
 
         if (!_isShowing.value) {
-            Log.w(SERVICE_TAG, "Update called but window is not showing.")
+            Log.w(tag, "Update called but window is not showing.")
             return@launch
         }
-        Log.d(SERVICE_TAG, "Updating window layout.")
+        Log.d(tag, "Updating window layout.")
         mutex.withLock {
             try {
 
                 windowManager.updateViewLayout(decorView, windowParams)
             } catch (e: Exception) {
-                Log.e(SERVICE_TAG, "Error updating window layout: ${e.localizedMessage}", e)
+                Log.e(tag, "Error updating window layout: ${e.localizedMessage}", e)
             }
         }
     }
@@ -241,10 +241,10 @@ open class CoreFloatingWindow(
         checkDestroyed()
 
         if (!_isShowing.value) {
-            Log.d(SERVICE_TAG, "Hide called but window is already hidden.")
+            Log.d(tag, "Hide called but window is already hidden.")
             return
         }
-        Log.d(SERVICE_TAG, "Hiding window.")
+        Log.d(tag, "Hiding window.")
 
         _isShowing.update { false }
         try {
@@ -252,11 +252,11 @@ open class CoreFloatingWindow(
             if (decorView.parent != null) {
                 windowManager.removeViewImmediate(decorView) // Use immediate for synchronous removal
             } else {
-                Log.w(SERVICE_TAG, "Hide called but DecorView has no parent.")
+                Log.w(tag, "Hide called but DecorView has no parent.")
             }
         } catch (e: Exception) {
             // Catch potential exceptions (e.g., view not attached)
-            Log.e(SERVICE_TAG, "Error hiding window: ${e.localizedMessage}", e)
+            Log.e(tag, "Error hiding window: ${e.localizedMessage}", e)
         } finally {
             // Move lifecycle to STOPPED regardless of removal success,
             // as the intention is to stop interaction.
@@ -280,7 +280,7 @@ open class CoreFloatingWindow(
         // Warn if non-application context is used to prevent memory leaks
         if (context !is Application && context.applicationContext != context) {
             Log.w(
-                SERVICE_TAG, "Consider using applicationContext " +
+                tag, "Consider using applicationContext " +
                         "instead of activity context to prevent memory leaks"
             )
         }
@@ -290,7 +290,7 @@ open class CoreFloatingWindow(
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
         // Enable SavedStateHandles for ViewModels
         enableSavedStateHandles()
-        Log.d(SERVICE_TAG, "ComposeServiceFloatingWindow initialized.")
+        Log.d(tag, "ComposeServiceFloatingWindow initialized.")
     }
 
     /** Throws an [IllegalStateException] if the window has been destroyed. */
@@ -303,7 +303,7 @@ open class CoreFloatingWindow(
     /** Disposes the Compose composition and clears the reference. */
     internal fun disposeCompositionIfNeeded() {
         composeView?.let {
-            Log.d(SERVICE_TAG, "Disposing composition.")
+            Log.d(tag, "Disposing composition.")
             it.disposeComposition() // Dispose the underlying composition
             parentComposition?.cancel() // Cancel the recomposer explicitly if needed
             parentComposition = null
@@ -329,10 +329,10 @@ open class CoreFloatingWindow(
      */
     override fun close() {
         if (_isDestroyed.value) {
-            Log.w(SERVICE_TAG, "Destroy called but window is already destroyed.")
+            Log.w(tag, "Destroy called but window is already destroyed.")
             return
         }
-        Log.d(SERVICE_TAG, "Destroying window...")
+        Log.d(tag, "Destroying window...")
 
         // Mark as destroyed immediately to prevent race conditions
         _isDestroyed.update { true }
@@ -343,7 +343,7 @@ open class CoreFloatingWindow(
                 hide()
             } catch (e: Exception) {
                 Log.e(
-                    SERVICE_TAG,
+                    tag,
                     "Error hiding window during destruction: ${e.localizedMessage}",
                     e
                 )
@@ -354,23 +354,23 @@ open class CoreFloatingWindow(
         disposeCompositionIfNeeded()
 
         // Cancel the custom lifecycle scope and its children (including the Recomposer's job)
-        Log.d(SERVICE_TAG, "Cancelling lifecycle coroutine scope.")
+        Log.d(tag, "Cancelling lifecycle coroutine scope.")
         try {// Explicit cancellation
             lifecycleCoroutineScope.cancel(
                 kotlinx.coroutines.CancellationException("ComposeServiceFloatingWindow destroyed")
             )
         } catch (e: kotlinx.coroutines.CancellationException) {
-            Log.d(SERVICE_TAG, "Coroutine scope cancelled normally: ${e.message}")
+            Log.d(tag, "Coroutine scope cancelled normally: ${e.message}")
         } catch (e: Exception) {
-            Log.e(SERVICE_TAG, "Recomposer error", e)
+            Log.e(tag, "Recomposer error", e)
         }
 
         // Move lifecycle to DESTROYED
-        Log.d(SERVICE_TAG, "Setting lifecycle state to DESTROYED.")
+        Log.d(tag, "Setting lifecycle state to DESTROYED.")
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
 
         // Clear the ViewModelStore
-        Log.d(SERVICE_TAG, "Clearing ViewModelStore.")
+        Log.d(tag, "Clearing ViewModelStore.")
         viewModelStore.clear()
 
         // Clean up references
@@ -379,6 +379,6 @@ open class CoreFloatingWindow(
         // windowManager is a system service, no need to clear.
         // savedStateRegistryController is tied to the lifecycle/owner, should be handled.
 
-        Log.d(SERVICE_TAG, "ComposeServiceFloatingWindow destroyed successfully.")
+        Log.d(tag, "ComposeServiceFloatingWindow destroyed successfully.")
     }
 }

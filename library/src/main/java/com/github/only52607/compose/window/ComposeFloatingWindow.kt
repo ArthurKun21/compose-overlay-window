@@ -51,6 +51,7 @@ class ComposeFloatingWindow(
 ) : CoreFloatingWindow(
     context = context,
     windowParams = windowParams,
+    tag = TAG
 ), HasDefaultViewModelProviderFactory {
 
     override val defaultViewModelProviderFactory: ViewModelProvider.Factory by lazy {
@@ -128,3 +129,5 @@ class ComposeFloatingWindow(
     }
 
 }
+
+private const val TAG = "ComposeFloatingWindow"
