@@ -54,7 +54,7 @@ open class CoreFloatingWindow(
 
     override val viewModelStore: ViewModelStore = ViewModelStore()
 
-    private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
+    private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
     override val lifecycle: Lifecycle
         get() = lifecycleRegistry
 
