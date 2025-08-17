@@ -1,4 +1,4 @@
-package com.github.only52607.compose.window
+package com.github.only52607.compose.core
 
 
 import android.content.Context
