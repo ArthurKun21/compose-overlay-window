@@ -58,7 +58,7 @@ open class CoreFloatingWindow(
     override val lifecycle: Lifecycle
         get() = lifecycleRegistry
 
-    private var savedStateRegistryController: SavedStateRegistryController =
+    private val savedStateRegistryController: SavedStateRegistryController =
         SavedStateRegistryController.create(this)
     override val savedStateRegistry: SavedStateRegistry
         get() = savedStateRegistryController.savedStateRegistry
