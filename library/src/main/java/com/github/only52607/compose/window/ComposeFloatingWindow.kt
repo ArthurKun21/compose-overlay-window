@@ -51,8 +51,7 @@ class ComposeFloatingWindow(
 ) : CoreFloatingWindow(
     context = context,
     windowParams = windowParams,
-),
-    HasDefaultViewModelProviderFactory {
+), HasDefaultViewModelProviderFactory {
 
     override val defaultViewModelProviderFactory: ViewModelProvider.Factory by lazy {
         SavedStateViewModelFactory(
