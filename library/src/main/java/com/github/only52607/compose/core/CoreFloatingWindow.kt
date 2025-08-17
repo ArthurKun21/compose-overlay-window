@@ -74,7 +74,7 @@ open class CoreFloatingWindow(
     val isShowing: StateFlow<Boolean>
         get() = _isShowing.asStateFlow()
 
-    private var _isDestroyed = MutableStateFlow(false)
+    private val _isDestroyed = MutableStateFlow(false)
 
     /**
      * A [StateFlow] indicating whether the floating window has been destroyed (`true`).
