@@ -290,13 +290,13 @@ open class CoreFloatingWindow(
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
         // Enable SavedStateHandles for ViewModels
         enableSavedStateHandles()
-        Log.d(tag, "ComposeServiceFloatingWindow initialized.")
+        Log.d(tag, "FloatingWindow initialized.")
     }
 
     /** Throws an [IllegalStateException] if the window has been destroyed. */
     internal fun checkDestroyed() {
         check(!_isDestroyed.value) {
-            "ComposeServiceFloatingWindow has been destroyed and cannot be used."
+            "FloatingWindow has been destroyed and cannot be used."
         }
     }
 
@@ -324,7 +324,7 @@ open class CoreFloatingWindow(
      * 5. Clears the [ViewModelStore], destroying associated ViewModels.
      * 6. Cleans up internal references.
      *
-     * **Once destroyed, this instance cannot be reused.** Create a new `ComposeServiceFloatingWindow`
+     * **Once destroyed, this instance cannot be reused.** Create a new `FloatingWindow`
      * instance if you need to show a floating window again.
      */
     override fun close() {
@@ -357,7 +357,7 @@ open class CoreFloatingWindow(
         Log.d(tag, "Cancelling lifecycle coroutine scope.")
         try {// Explicit cancellation
             lifecycleCoroutineScope.cancel(
-                kotlinx.coroutines.CancellationException("ComposeServiceFloatingWindow destroyed")
+                kotlinx.coroutines.CancellationException("FloatingWindow destroyed")
             )
         } catch (e: kotlinx.coroutines.CancellationException) {
             Log.d(tag, "Coroutine scope cancelled normally: ${e.message}")
@@ -379,6 +379,6 @@ open class CoreFloatingWindow(
         // windowManager is a system service, no need to clear.
         // savedStateRegistryController is tied to the lifecycle/owner, should be handled.
 
-        Log.d(tag, "ComposeServiceFloatingWindow destroyed successfully.")
+        Log.d(tag, "FloatingWindow destroyed successfully.")
     }
 }
