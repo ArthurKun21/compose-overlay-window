@@ -123,7 +123,7 @@ class ComposeFloatingWindow(
         decorView.addView(currentComposeView)
 
         // If already showing, update the layout immediately
-        if (_isShowing.value) {
+        if (isShowing.value) {
             update()
         }
     }

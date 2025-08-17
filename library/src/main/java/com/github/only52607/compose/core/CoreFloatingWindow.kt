@@ -65,7 +65,7 @@ open class CoreFloatingWindow(
 
     // --- Window State ---
 
-    internal var _isShowing = MutableStateFlow(false)
+    private var _isShowing = MutableStateFlow(false)
 
     /**
      * A [StateFlow] indicating whether the floating window is currently shown (`true`) or hidden (`false`).
