@@ -417,6 +417,15 @@ private class SystemDialogWrapper(
         setSecurePolicy(properties.securePolicy)
         setLayoutDirection(layoutDirection)
         dialogLayout.usePlatformDefaultWidth = properties.usePlatformDefaultWidth
+
+        // Configure window layout parameters based on usePlatformDefaultWidth
+        if (!properties.usePlatformDefaultWidth) {
+            window?.setLayout(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+            )
+        }
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             @OptIn(ExperimentalComposeUiApi::class)
             if (properties.decorFitsSystemWindows) {
