@@ -17,6 +17,7 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package androidx.compose.ui.window
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Outline
 import android.os.Build
@@ -62,9 +63,6 @@ import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import kotlin.collections.forEach
-import kotlin.collections.map
-import kotlin.collections.maxBy
 import kotlin.math.roundToInt
 import kotlin.uuid.Uuid
 
@@ -282,6 +280,7 @@ private class SystemDialogLayout(
     }
 }
 
+@SuppressLint("PrivateResource")
 private class SystemDialogWrapper(
     private var onDismissRequest: () -> Unit,
     private var properties: SystemDialogProperties,
@@ -458,8 +457,8 @@ private fun SystemDialogLayout(
         modifier = modifier,
     ) { measurables, constraints ->
         val placeables = measurables.map { it.measure(constraints) }
-        val width = placeables.maxBy { it.width }?.width ?: constraints.minWidth
-        val height = placeables.maxBy { it.height }?.height ?: constraints.minHeight
+        val width = placeables.maxBy { it.width }.width
+        val height = placeables.maxBy { it.height }.height
         layout(width, height) {
             placeables.forEach { it.placeRelative(0, 0) }
         }
