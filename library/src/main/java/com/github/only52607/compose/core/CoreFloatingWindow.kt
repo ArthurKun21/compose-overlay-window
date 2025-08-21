@@ -141,8 +141,6 @@ open class CoreFloatingWindow(
                     if (textColorSecondary != 0) {
                         setTag(android.R.id.text2, textColorSecondary)
                     }
-
-                    recycle()
                 },
             )
         } catch (e: Exception) {
