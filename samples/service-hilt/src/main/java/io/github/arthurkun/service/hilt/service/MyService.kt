@@ -39,7 +39,7 @@ class MyService : Service() {
         serviceOverlay.show()
     }
 
-    override fun onBind(p0: Intent?): IBinder? = null
+    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         _serviceStarted.update { false }
