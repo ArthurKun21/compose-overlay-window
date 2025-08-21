@@ -38,7 +38,12 @@ fun FloatingScreen(
                     }
                 },
                 text = {
-                    Text(text = "Result:\n${state.text}")
+                    Text(
+                        text = when (state.text.isBlank()) {
+                            true -> "No text entered"
+                            else -> "You typed: ${state.text}"
+                        },
+                    )
                 },
             )
         }
