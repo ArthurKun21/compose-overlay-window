@@ -103,6 +103,7 @@ open class CoreFloatingWindow(
     /**
      * Applies app theme attributes to the decorView container.
      * This helps ensure the floating window follows the app's theme.
+     * Note: Background color is intentionally not applied to maintain transparency.
      */
     private fun ViewGroup.applyAppTheme() {
         try {
@@ -110,15 +111,33 @@ open class CoreFloatingWindow(
             context.withStyledAttributes(
                 set = null,
                 attrs = intArrayOf(
-                    android.R.attr.colorBackground,
                     android.R.attr.textColorPrimary,
                     android.R.attr.colorPrimary,
+                    android.R.attr.colorAccent,
+                    android.R.attr.textColorSecondary,
                 ),
                 block = {
-                    // Apply background color if available
-                    val backgroundColor = getColor(0, 0)
-                    if (backgroundColor != 0) {
-                        setBackgroundColor(backgroundColor)
+                    // Apply theme attributes to the container
+                    // Note: We intentionally skip colorBackground to maintain transparency
+
+                    // These attributes will be inherited by child views
+                    val textColorPrimary = getColor(0, 0)
+                    val colorPrimary = getColor(1, 0)
+                    val colorAccent = getColor(2, 0)
+                    val textColorSecondary = getColor(3, 0)
+
+                    // Store theme colors as tags for child views to access if needed
+                    if (textColorPrimary != 0) {
+                        setTag(android.R.id.text1, textColorPrimary)
+                    }
+                    if (colorPrimary != 0) {
+                        setTag(android.R.id.primary, colorPrimary)
+                    }
+                    if (colorAccent != 0) {
+                        setTag(android.R.id.secondaryProgress, colorAccent)
+                    }
+                    if (textColorSecondary != 0) {
+                        setTag(android.R.id.text2, textColorSecondary)
                     }
 
                     recycle()
