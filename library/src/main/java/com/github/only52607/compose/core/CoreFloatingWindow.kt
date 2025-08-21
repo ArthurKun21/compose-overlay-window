@@ -109,6 +109,10 @@ open class CoreFloatingWindow(
     @SuppressLint("ResourceType")
     private fun ViewGroup.applyAppTheme() {
         try {
+            val textColorPrimaryIdx = 0
+            val colorPrimaryIdx = 1
+            val colorAccentIdx = 2
+            val textColorSecondaryIdx = 3
             // Get theme attributes from the context
             context.withStyledAttributes(
                 set = null,
@@ -123,10 +127,10 @@ open class CoreFloatingWindow(
                     // Note: We intentionally skip colorBackground to maintain transparency
 
                     // These attributes will be inherited by child views
-                    val textColorPrimary = getColor(0, 0)
-                    val colorPrimary = getColor(1, 0)
-                    val colorAccent = getColor(2, 0)
-                    val textColorSecondary = getColor(3, 0)
+                    val textColorPrimary = getColor(textColorPrimaryIdx, 0)
+                    val colorPrimary = getColor(colorPrimaryIdx, 0)
+                    val colorAccent = getColor(colorAccentIdx, 0)
+                    val textColorSecondary = getColor(textColorSecondaryIdx, 0)
 
                     // Store theme colors as tags for child views to access if needed
                     if (textColorPrimary != 0) {
