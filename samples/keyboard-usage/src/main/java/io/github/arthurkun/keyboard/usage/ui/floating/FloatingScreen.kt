@@ -90,6 +90,7 @@ fun FloatingScreen(
                             }
                         },
                     interactionSource = interactionSource,
+                    maxLines = 1,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
