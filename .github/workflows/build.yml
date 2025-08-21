@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [ app-activity, service-hilt, fullscreen-dialog ]
+        module: [ app-activity, service-hilt, fullscreen-dialog, keyboard-usage ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
