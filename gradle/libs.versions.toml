@@ -41,6 +41,7 @@ compose-ui = { module = "androidx.compose.ui:ui" }
 compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-test-junit = { module = "androidx.test.ext:junit", version.ref = "test-ext-junit" }
@@ -71,3 +72,7 @@ hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 
 [bundles]
 datastore = ["datastore", "datastore-preferences"]
+compose-ui = [
+    "compose-ui", "compose-ui-graphics", "compose-ui-tooling-preview",
+    "compose-material3", "compose-material-icons-core"
+]
