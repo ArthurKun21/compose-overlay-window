@@ -23,53 +23,53 @@ import androidx.compose.ui.window.SystemDialog
 import androidx.compose.ui.window.SystemDialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.only52607.compose.window.LocalFloatingWindow
 import com.github.only52607.compose.window.dragFloatingWindow
+import io.github.arthurkun.fullscreen.dialog.ui.theme.ComposeFloatingWindowTheme
 
 @Composable
 fun FloatingScreen(
     vm: FloatingViewModel = viewModel(),
 ) {
-    LocalFloatingWindow.current
-
     val showing by vm.dialogVisible.collectAsStateWithLifecycle()
 
-    if (showing) {
-        SystemDialog(
-            onDismissRequest = vm::dismissDialog,
-            properties = SystemDialogProperties(
-                usePlatformDefaultWidth = false,
-            ),
-        ) {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
+    ComposeFloatingWindowTheme {
+        if (showing) {
+            SystemDialog(
+                onDismissRequest = vm::dismissDialog,
+                properties = SystemDialogProperties(
+                    usePlatformDefaultWidth = false,
+                ),
             ) {
-                Column(
+                Surface(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text("This is a fullscreen dialog!")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = vm::dismissDialog) {
-                        Text("Dismiss")
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text("This is a fullscreen dialog!")
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = vm::dismissDialog) {
+                            Text("Dismiss")
+                        }
                     }
                 }
             }
         }
-    }
 
-    FloatingActionButton(
-        modifier = Modifier.dragFloatingWindow(),
-        onClick = {
-            vm.showDialog()
-        },
-    ) {
-        AnimatedContent(showing) { isVisible ->
-            if (isVisible) {
-                Icon(Icons.Default.Close, contentDescription = "Hide Dialog")
-            } else {
-                Icon(Icons.Default.Done, contentDescription = "Show Dialog")
+        FloatingActionButton(
+            modifier = Modifier.dragFloatingWindow(),
+            onClick = {
+                vm.showDialog()
+            },
+        ) {
+            AnimatedContent(showing) { isVisible ->
+                if (isVisible) {
+                    Icon(Icons.Default.Close, contentDescription = "Hide Dialog")
+                } else {
+                    Icon(Icons.Default.Done, contentDescription = "Show Dialog")
+                }
             }
         }
     }
