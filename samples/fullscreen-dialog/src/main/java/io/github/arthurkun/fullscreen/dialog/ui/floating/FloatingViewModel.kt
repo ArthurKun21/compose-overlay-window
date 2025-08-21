@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class FloatingViewModel : ViewModel() {
-    private var _dialogVisible = MutableStateFlow(false)
+    private val _dialogVisible = MutableStateFlow(false)
 
     val dialogVisible
         get() = _dialogVisible.asStateFlow()
