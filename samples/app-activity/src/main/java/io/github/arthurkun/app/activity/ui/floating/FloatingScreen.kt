@@ -2,10 +2,8 @@ package io.github.arthurkun.app.activity.ui.floating
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SystemAlertDialog
@@ -23,7 +21,7 @@ import com.github.only52607.compose.window.dragFloatingWindow
 fun FloatingScreen(
     vm: FloatingViewModel = viewModel(),
 ) {
-    val floatingWindow = LocalFloatingWindow.current
+    LocalFloatingWindow.current
 
     val showing by vm.dialogVisible.collectAsStateWithLifecycle()
 
@@ -37,7 +35,7 @@ fun FloatingScreen(
             },
             text = {
                 Text(text = "This is a system dialog")
-            }
+            },
         )
     }
 
@@ -45,7 +43,7 @@ fun FloatingScreen(
         modifier = Modifier.dragFloatingWindow(),
         onClick = {
             vm.showDialog()
-        }
+        },
     ) {
         AnimatedContent(showing) { isVisible ->
             if (isVisible) {
