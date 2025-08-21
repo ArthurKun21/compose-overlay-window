@@ -1,9 +1,11 @@
 package com.github.only52607.compose.window
 
+import android.content.Context
 import android.util.Log
 import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
 import android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.interaction.FocusInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
@@ -15,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -23,6 +26,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun rememberFloatingWindowInteractionSource(): MutableInteractionSource {
     val floatingWindow = LocalFloatingWindow.current
+    val context = LocalContext.current
 
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -42,6 +46,22 @@ fun rememberFloatingWindowInteractionSource(): MutableInteractionSource {
                 is FocusInteraction.Focus -> {
                     focusIndication = it
                     Log.d("", "FocusInteraction.Focus: $it")
+                    // Remove FLAG_NOT_FOCUSABLE to allow keyboard to appear
+                    if (floatingWindow.windowParams.flags and FLAG_NOT_FOCUSABLE != 0) {
+                        Log.d("", "Removing FLAG_NOT_FOCUSABLE to summon keyboard")
+                        floatingWindow.windowParams.flags =
+                            floatingWindow.windowParams.flags and FLAG_NOT_FOCUSABLE.inv()
+                        floatingWindow.update()
+
+                        // Explicitly request to show the soft keyboard
+                        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                        imm.showSoftInput(floatingWindow.decorView, InputMethodManager.SHOW_IMPLICIT)
+                    }
+                }
+
+                is FocusInteraction.Unfocus -> {
+                    focusIndication = null
+                    Log.d("", "FocusInteraction.Unfocus: $it")
                 }
             }
         }
