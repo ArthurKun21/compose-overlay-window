@@ -62,6 +62,13 @@ fun rememberFloatingWindowInteractionSource(): MutableInteractionSource {
                 is FocusInteraction.Unfocus -> {
                     focusIndication = null
                     Log.d(TAG, "FocusInteraction.Unfocus: $it")
+
+                    if (floatingWindow.windowParams.flags and FLAG_NOT_FOCUSABLE.inv() != 0) {
+                        Log.d(TAG, "Restoring FLAG_NOT_FOCUSABLE")
+                        floatingWindow.windowParams.flags =
+                            FLAG_NOT_TOUCH_MODAL or FLAG_NOT_FOCUSABLE or FLAG_LAYOUT_NO_LIMITS
+                        floatingWindow.update()
+                    }
                 }
             }
         }
