@@ -52,17 +52,17 @@ class ComposeFloatingWindow(
 ) : CoreFloatingWindow(
     context = context,
     windowParams = windowParams,
-    tag = TAG
-), HasDefaultViewModelProviderFactory {
+    tag = TAG,
+),
+    HasDefaultViewModelProviderFactory {
 
     override val defaultViewModelProviderFactory: ViewModelProvider.Factory by lazy {
         SavedStateViewModelFactory(
             context.applicationContext as Application,
             this@ComposeFloatingWindow,
-            null
+            null,
         )
     }
-
 
     /**
      * Sets the Jetpack Compose content for the floating window.
@@ -81,7 +81,6 @@ class ComposeFloatingWindow(
         disposeCompositionIfNeeded()
 
         val currentComposeView = ComposeView(context).apply {
-
             setViewTreeLifecycleOwner(this@ComposeFloatingWindow)
             setViewTreeViewModelStoreOwner(this@ComposeFloatingWindow)
             setViewTreeSavedStateRegistryOwner(this@ComposeFloatingWindow)
@@ -107,7 +106,7 @@ class ComposeFloatingWindow(
             // Set the actual Composable content
             setContent {
                 CompositionLocalProvider(
-                    LocalFloatingWindow provides this@ComposeFloatingWindow
+                    LocalFloatingWindow provides this@ComposeFloatingWindow,
                 ) {
                     content()
                 }
@@ -128,7 +127,6 @@ class ComposeFloatingWindow(
             update()
         }
     }
-
 }
 
 private const val TAG = "ComposeFloatingWindow"

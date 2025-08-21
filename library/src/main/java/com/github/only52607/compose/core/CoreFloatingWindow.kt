@@ -49,7 +49,7 @@ open class CoreFloatingWindow(
     internal val coroutineContext = AndroidUiDispatcher.CurrentThread
     internal val lifecycleCoroutineScope = CoroutineScope(
         SupervisorJob() +
-                coroutineContext + coroutineExceptionHandler
+            coroutineContext + coroutineExceptionHandler,
     )
     private val mutex = Mutex()
 
@@ -132,7 +132,6 @@ open class CoreFloatingWindow(
     val maxYCoordinate
         get() = display.metrics.heightPixels - decorView.measuredHeight
 
-
     /**
      * Shows the floating window.
      *
@@ -153,7 +152,7 @@ open class CoreFloatingWindow(
         if (!isAvailable()) {
             Log.w(
                 tag,
-                "Overlay permission (SYSTEM_ALERT_WINDOW) not granted. Cannot show window."
+                "Overlay permission (SYSTEM_ALERT_WINDOW) not granted. Cannot show window.",
             )
             return
         }
@@ -222,7 +221,6 @@ open class CoreFloatingWindow(
         Log.d(tag, "Updating window layout.")
         mutex.withLock {
             try {
-
                 windowManager.updateViewLayout(decorView, windowParams)
             } catch (e: Exception) {
                 Log.e(tag, "Error updating window layout: ${e.localizedMessage}", e)
@@ -281,8 +279,9 @@ open class CoreFloatingWindow(
         // Warn if non-application context is used to prevent memory leaks
         if (context !is Application && context.applicationContext != context) {
             Log.w(
-                tag, "Consider using applicationContext " +
-                        "instead of activity context to prevent memory leaks"
+                tag,
+                "Consider using applicationContext " +
+                    "instead of activity context to prevent memory leaks",
             )
         }
         // Restore state early in the lifecycle
@@ -343,7 +342,7 @@ open class CoreFloatingWindow(
                 Log.e(
                     tag,
                     "Error hiding window during destruction: ${e.localizedMessage}",
-                    e
+                    e,
                 )
             }
         }
@@ -356,9 +355,9 @@ open class CoreFloatingWindow(
 
         // Cancel the custom lifecycle scope and its children (including the Recomposer's job)
         Log.d(tag, "Cancelling lifecycle coroutine scope.")
-        try {// Explicit cancellation
+        try { // Explicit cancellation
             lifecycleCoroutineScope.cancel(
-                CancellationException("FloatingWindow destroyed")
+                CancellationException("FloatingWindow destroyed"),
             )
         } catch (e: CancellationException) {
             Log.d(tag, "Coroutine scope cancelled normally: ${e.message}")

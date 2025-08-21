@@ -62,11 +62,11 @@ import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import kotlin.math.roundToInt
-import kotlin.uuid.Uuid
 import kotlin.collections.forEach
 import kotlin.collections.map
 import kotlin.collections.maxBy
+import kotlin.math.roundToInt
+import kotlin.uuid.Uuid
 
 /**
  * Properties used to customize the behavior of a [SystemDialog].
@@ -91,7 +91,7 @@ class SystemDialogProperties(
     val dismissOnClickOutside: Boolean = true,
     val securePolicy: SecureFlagPolicy = SecureFlagPolicy.Inherit,
     val usePlatformDefaultWidth: Boolean = true,
-    val decorFitsSystemWindows: Boolean = true
+    val decorFitsSystemWindows: Boolean = true,
 ) {
 
     constructor(
@@ -103,7 +103,7 @@ class SystemDialogProperties(
         dismissOnClickOutside = dismissOnClickOutside,
         securePolicy = securePolicy,
         usePlatformDefaultWidth = true,
-        decorFitsSystemWindows = true
+        decorFitsSystemWindows = true,
     )
 
     override fun equals(other: Any?): Boolean {
@@ -152,7 +152,7 @@ class SystemDialogProperties(
 fun SystemDialog(
     onDismissRequest: () -> Unit,
     properties: SystemDialogProperties = SystemDialogProperties(),
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val view = LocalView.current
     val density = LocalDensity.current
@@ -167,7 +167,7 @@ fun SystemDialog(
             view,
             layoutDirection,
             density,
-            dialogId
+            dialogId,
         ).apply {
             setContent(composition) {
                 // TODO(b/159900354): draw a scrim and add margins around the Compose Dialog, and
@@ -200,7 +200,7 @@ fun SystemDialog(
         dialog.updateParameters(
             onDismissRequest = onDismissRequest,
             properties = properties,
-            layoutDirection = layoutDirection
+            layoutDirection = layoutDirection,
         )
     }
 }
@@ -217,7 +217,7 @@ interface SystemDialogWindowProvider {
 @Suppress("ViewConstructor")
 private class SystemDialogLayout(
     context: Context,
-    override val window: Window
+    override val window: Window,
 ) : AbstractComposeView(context), SystemDialogWindowProvider {
 
     private var content: @Composable () -> Unit by mutableStateOf({})
@@ -236,6 +236,7 @@ private class SystemDialogLayout(
 
     @Override
     @JvmName("internalOnMeasure")
+    @Suppress("unused", "FunctionName")
     fun _internalOnMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         if (usePlatformDefaultWidth) {
             super.internalOnMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -254,6 +255,7 @@ private class SystemDialogLayout(
 
     @Override
     @JvmName("internalOnMeasure")
+    @Suppress("unused", "FunctionName")
     fun _internalOnLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.internalOnLayout(changed, left, top, right, bottom)
         // Now set the content size as fixed layout params, such that ViewRootImpl knows
@@ -286,7 +288,7 @@ private class SystemDialogWrapper(
     private val composeView: View,
     layoutDirection: LayoutDirection,
     density: Density,
-    dialogId: String
+    dialogId: String,
 ) : ComponentDialog(
     /**
      * [Window.setClipToOutline] is only available from 22+, but the style attribute exists on 21.
@@ -298,8 +300,8 @@ private class SystemDialogWrapper(
             R.style.DialogWindowTheme
         } else {
             R.style.FloatingDialogWindowTheme
-        }
-    )
+        },
+    ),
 ),
     ViewRootForInspector {
 
@@ -362,7 +364,7 @@ private class SystemDialogWrapper(
         dialogLayout.setViewTreeLifecycleOwner(composeView.findViewTreeLifecycleOwner())
         dialogLayout.setViewTreeViewModelStoreOwner(composeView.findViewTreeViewModelStoreOwner())
         dialogLayout.setViewTreeSavedStateRegistryOwner(
-            composeView.findViewTreeSavedStateRegistryOwner()
+            composeView.findViewTreeSavedStateRegistryOwner(),
         )
 
         // Initial setup
@@ -402,14 +404,14 @@ private class SystemDialogWrapper(
             } else {
                 WindowManager.LayoutParams.FLAG_SECURE.inv()
             },
-            WindowManager.LayoutParams.FLAG_SECURE
+            WindowManager.LayoutParams.FLAG_SECURE,
         )
     }
 
     fun updateParameters(
         onDismissRequest: () -> Unit,
         properties: SystemDialogProperties,
-        layoutDirection: LayoutDirection
+        layoutDirection: LayoutDirection,
     ) {
         this.onDismissRequest = onDismissRequest
         this.properties = properties
@@ -449,11 +451,11 @@ private class SystemDialogWrapper(
 @Composable
 private fun SystemDialogLayout(
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     Layout(
         content = content,
-        modifier = modifier
+        modifier = modifier,
     ) { measurables, constraints ->
         val placeables = measurables.map { it.measure(constraints) }
         val width = placeables.maxBy { it.width }?.width ?: constraints.minWidth

@@ -33,8 +33,10 @@ internal fun defaultLayoutParams(context: Context) = WindowManager.LayoutParams(
     gravity = Gravity.START or Gravity.TOP
     windowAnimations = android.R.style.Animation_Dialog
     flags =
-        (WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL // Allows touches to pass through
-                or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE) // Prevents the window from taking focus (e.g., keyboard)
+        (
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL // Allows touches to pass through
+                or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+            ) // Prevents the window from taking focus (e.g., keyboard)
 
     // Set window type correctly for overlays
     // Requires SYSTEM_ALERT_WINDOW permission

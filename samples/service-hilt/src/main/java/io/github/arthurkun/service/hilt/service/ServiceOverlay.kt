@@ -24,7 +24,6 @@ class ServiceOverlay @Inject constructor(
     private var viewModel: FloatingViewModel? = null
     private var floatingWindow: ComposeServiceFloatingWindow? = null
 
-
     init {
         floatingWindow = createFloatingWindow()
     }

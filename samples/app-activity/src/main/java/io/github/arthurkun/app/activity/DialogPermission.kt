@@ -42,7 +42,7 @@ fun DialogPermission(
         icon = {
             Icon(
                 Icons.Default.Warning,
-                contentDescription = stringResource(R.string.permission_required)
+                contentDescription = stringResource(R.string.permission_required),
             )
         },
         title = {
@@ -56,7 +56,7 @@ fun DialogPermission(
             TextButton(
                 onClick = {
                     requestOverlayPermission(context)
-                }
+                },
             ) {
                 Text(stringResource(R.string.grant_permission))
             }
@@ -65,6 +65,6 @@ fun DialogPermission(
             TextButton(onClick = onDismiss) {
                 Text(stringResource(android.R.string.cancel))
             }
-        }
+        },
     )
 }

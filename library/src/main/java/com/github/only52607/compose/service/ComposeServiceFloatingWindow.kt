@@ -2,7 +2,6 @@
 
 package com.github.only52607.compose.service
 
-
 import android.content.Context
 import android.util.Log
 import android.view.WindowManager
@@ -52,7 +51,7 @@ class ComposeServiceFloatingWindow(
 ) : CoreFloatingWindow(
     context = context,
     windowParams = windowParams,
-    tag = SERVICE_TAG
+    tag = SERVICE_TAG,
 ) {
     /**
      * Sets the Jetpack Compose content for the floating window.
@@ -71,7 +70,6 @@ class ComposeServiceFloatingWindow(
         disposeCompositionIfNeeded()
 
         val currentComposeView = ComposeView(context).apply {
-
             setViewTreeLifecycleOwner(this@ComposeServiceFloatingWindow)
             setViewTreeViewModelStoreOwner(this@ComposeServiceFloatingWindow)
             setViewTreeSavedStateRegistryOwner(this@ComposeServiceFloatingWindow)
@@ -97,7 +95,7 @@ class ComposeServiceFloatingWindow(
             // Set the actual Composable content
             setContent {
                 CompositionLocalProvider(
-                    LocalServiceFloatingWindow provides this@ComposeServiceFloatingWindow
+                    LocalServiceFloatingWindow provides this@ComposeServiceFloatingWindow,
                 ) {
                     content()
                 }
