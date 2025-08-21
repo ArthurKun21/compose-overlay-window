@@ -85,6 +85,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         if (floatingWindow.isShowing.value) {
             floatingWindow.hide()
+            floatingWindow.close()
         }
         super.onDestroy()
     }
