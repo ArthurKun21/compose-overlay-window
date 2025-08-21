@@ -1,17 +1,22 @@
 package io.github.arthurkun.keyboard.usage.ui.floating
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SystemAlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.only52607.compose.window.dragFloatingWindow
@@ -21,10 +26,10 @@ import io.github.arthurkun.keyboard.usage.ui.theme.ComposeFloatingWindowTheme
 fun FloatingScreen(
     vm: FloatingViewModel = viewModel(),
 ) {
-    val showing by vm.dialogVisible.collectAsStateWithLifecycle()
+    val state by vm.state.collectAsStateWithLifecycle()
 
     ComposeFloatingWindowTheme {
-        if (showing) {
+        if (state.isDialogVisible) {
             SystemAlertDialog(
                 onDismissRequest = { vm.dismissDialog() },
                 confirmButton = {
@@ -33,22 +38,35 @@ fun FloatingScreen(
                     }
                 },
                 text = {
-                    Text(text = "This is a system dialog")
+                    Text(text = "Result:\n${state.text}")
                 },
             )
         }
 
-        FloatingActionButton(
-            modifier = Modifier.dragFloatingWindow(),
-            onClick = {
-                vm.showDialog()
-            },
+        Surface(
+            modifier = Modifier
+                .dragFloatingWindow()
+                .border(
+                    Dp.Hairline,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                ),
         ) {
-            AnimatedContent(showing) { isVisible ->
-                if (isVisible) {
-                    Icon(Icons.Default.Close, contentDescription = "Hide Dialog")
-                } else {
-                    Icon(Icons.Default.Done, contentDescription = "Show Dialog")
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                OutlinedTextField(
+                    value = state.text,
+                    onValueChange = vm::onTextUpdate,
+                    label = { Text("Type something") },
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                TextButton(
+                    onClick = vm::showDialog,
+                ) {
+                    Text("Submit")
                 }
             }
         }
