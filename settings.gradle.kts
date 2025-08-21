@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "ComposeFloatingWindow"
 include(":library")
+include(":samples:app-activity")
