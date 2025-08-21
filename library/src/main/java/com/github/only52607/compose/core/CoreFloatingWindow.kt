@@ -1,5 +1,6 @@
 package com.github.only52607.compose.core
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.provider.Settings
@@ -10,6 +11,7 @@ import android.widget.FrameLayout
 import androidx.compose.runtime.Recomposer
 import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.content.withStyledAttributes
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
@@ -93,8 +95,62 @@ open class CoreFloatingWindow(
             // Important: Prevent clipping so shadows or elements outside bounds can be drawn
             clipChildren = false
             clipToPadding = false
+
+            // Apply app theme attributes to the container
+            applyAppTheme()
         }
         private set
+
+    /**
+     * Applies app theme attributes to the decorView container.
+     * This helps ensure the floating window follows the app's theme.
+     * Note: Background color is intentionally not applied to maintain transparency.
+     */
+    @SuppressLint("ResourceType")
+    private fun ViewGroup.applyAppTheme() {
+        try {
+            val textColorPrimaryIdx = 0
+            val colorPrimaryIdx = 1
+            val colorAccentIdx = 2
+            val textColorSecondaryIdx = 3
+            // Get theme attributes from the context
+            context.withStyledAttributes(
+                set = null,
+                attrs = intArrayOf(
+                    android.R.attr.textColorPrimary,
+                    android.R.attr.colorPrimary,
+                    android.R.attr.colorAccent,
+                    android.R.attr.textColorSecondary,
+                ),
+                block = {
+                    // Apply theme attributes to the container
+                    // Note: We intentionally skip colorBackground to maintain transparency
+
+                    // These attributes will be inherited by child views
+                    val textColorPrimary = getColor(textColorPrimaryIdx, 0)
+                    val colorPrimary = getColor(colorPrimaryIdx, 0)
+                    val colorAccent = getColor(colorAccentIdx, 0)
+                    val textColorSecondary = getColor(textColorSecondaryIdx, 0)
+
+                    // Store theme colors as tags for child views to access if needed
+                    if (textColorPrimary != 0) {
+                        setTag(android.R.id.text1, textColorPrimary)
+                    }
+                    if (colorPrimary != 0) {
+                        setTag(android.R.id.primary, colorPrimary)
+                    }
+                    if (colorAccent != 0) {
+                        setTag(android.R.id.secondaryProgress, colorAccent)
+                    }
+                    if (textColorSecondary != 0) {
+                        setTag(android.R.id.text2, textColorSecondary)
+                    }
+                },
+            )
+        } catch (e: Exception) {
+            Log.w("Floating Window", "Failed to apply app theme attributes: ${e.message}", e)
+        }
+    }
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 

@@ -14,42 +14,42 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.only52607.compose.window.LocalFloatingWindow
 import com.github.only52607.compose.window.dragFloatingWindow
+import io.github.arthurkun.app.activity.ui.theme.ComposeFloatingWindowTheme
 
 @Composable
 fun FloatingScreen(
     vm: FloatingViewModel = viewModel(),
 ) {
-    LocalFloatingWindow.current
-
     val showing by vm.dialogVisible.collectAsStateWithLifecycle()
 
-    if (showing) {
-        SystemAlertDialog(
-            onDismissRequest = { vm.dismissDialog() },
-            confirmButton = {
-                TextButton(onClick = { vm.dismissDialog() }) {
-                    Text(text = "OK")
-                }
-            },
-            text = {
-                Text(text = "This is a system dialog")
-            },
-        )
-    }
+    ComposeFloatingWindowTheme {
+        if (showing) {
+            SystemAlertDialog(
+                onDismissRequest = { vm.dismissDialog() },
+                confirmButton = {
+                    TextButton(onClick = { vm.dismissDialog() }) {
+                        Text(text = "OK")
+                    }
+                },
+                text = {
+                    Text(text = "This is a system dialog")
+                },
+            )
+        }
 
-    FloatingActionButton(
-        modifier = Modifier.dragFloatingWindow(),
-        onClick = {
-            vm.showDialog()
-        },
-    ) {
-        AnimatedContent(showing) { isVisible ->
-            if (isVisible) {
-                Icon(Icons.Default.Close, contentDescription = "Hide Dialog")
-            } else {
-                Icon(Icons.Default.Done, contentDescription = "Show Dialog")
+        FloatingActionButton(
+            modifier = Modifier.dragFloatingWindow(),
+            onClick = {
+                vm.showDialog()
+            },
+        ) {
+            AnimatedContent(showing) { isVisible ->
+                if (isVisible) {
+                    Icon(Icons.Default.Close, contentDescription = "Hide Dialog")
+                } else {
+                    Icon(Icons.Default.Done, contentDescription = "Show Dialog")
+                }
             }
         }
     }
