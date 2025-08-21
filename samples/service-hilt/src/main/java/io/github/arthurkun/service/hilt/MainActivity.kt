@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,26 +20,54 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.github.only52607.compose.window.ComposeFloatingWindow
-import io.github.arthurkun.service.hilt.ui.floating.FloatingScreen
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.github.only52607.compose.core.checkOverlayPermission
+import dagger.hilt.android.AndroidEntryPoint
+import io.github.arthurkun.service.hilt.repository.UserPreferencesRepository
+import io.github.arthurkun.service.hilt.service.MyService
 import io.github.arthurkun.service.hilt.ui.theme.ComposeFloatingWindowTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private val floatingWindow by lazy {
-        createFloatingWindow()
-    }
+    @Inject
+    lateinit var userPreferencesRepository: UserPreferencesRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                userPreferencesRepository.darkModeFlow.collect { darkMode ->
+                    withContext(Dispatchers.Main) {
+                        AppCompatDelegate.setDefaultNightMode(
+                            if (darkMode) {
+                                AppCompatDelegate.MODE_NIGHT_YES
+                            } else {
+                                AppCompatDelegate.MODE_NIGHT_NO
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
         setContent {
             ComposeFloatingWindowTheme {
                 var showDialogPermission by rememberSaveable { mutableStateOf(false) }
+                val isShowing by MyService.serviceStarted.collectAsStateWithLifecycle()
+                val context = LocalContext.current
 
-                val showing by floatingWindow.isShowing.collectAsStateWithLifecycle()
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                 ) { innerPadding ->
@@ -51,20 +80,23 @@ class MainActivity : AppCompatActivity() {
                     ) {
                         Button(
                             onClick = {
-                                if (floatingWindow.isAvailable()) {
-                                    show()
+                                val overlayPermission = checkOverlayPermission(context)
+                                if (overlayPermission) {
+                                    MyService.start(context)
                                 } else {
                                     showDialogPermission = true
                                 }
                             },
-                            enabled = !showing,
+                            enabled = !isShowing,
                         ) {
                             Text("Show")
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(
-                            onClick = ::hide,
-                            enabled = showing,
+                            onClick = {
+                                MyService.stop(context)
+                            },
+                            enabled = isShowing,
                         ) {
                             Text("Hide")
                         }
@@ -82,25 +114,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onDestroy() {
-        if (floatingWindow.isShowing.value) {
-            floatingWindow.hide()
-        }
-        super.onDestroy()
-    }
-
-    private fun createFloatingWindow(): ComposeFloatingWindow =
-        ComposeFloatingWindow(applicationContext).apply {
-            setContent {
-                FloatingScreen()
-            }
-        }
-
-    private fun show() {
-        floatingWindow.show()
-    }
-
-    private fun hide() {
-        floatingWindow.hide()
-    }
 }
