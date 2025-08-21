@@ -45,10 +45,10 @@ fun rememberFloatingWindowInteractionSource(): MutableInteractionSource {
             when (it) {
                 is FocusInteraction.Focus -> {
                     focusIndication = it
-                    Log.d("", "FocusInteraction.Focus: $it")
+                    Log.d(TAG, "FocusInteraction.Focus: $it")
                     // Remove FLAG_NOT_FOCUSABLE to allow keyboard to appear
                     if (floatingWindow.windowParams.flags and FLAG_NOT_FOCUSABLE != 0) {
-                        Log.d("", "Removing FLAG_NOT_FOCUSABLE to summon keyboard")
+                        Log.d(TAG, "Removing FLAG_NOT_FOCUSABLE to summon keyboard")
                         floatingWindow.windowParams.flags =
                             floatingWindow.windowParams.flags and FLAG_NOT_FOCUSABLE.inv()
                         floatingWindow.update()
@@ -61,7 +61,7 @@ fun rememberFloatingWindowInteractionSource(): MutableInteractionSource {
 
                 is FocusInteraction.Unfocus -> {
                     focusIndication = null
-                    Log.d("", "FocusInteraction.Unfocus: $it")
+                    Log.d(TAG, "FocusInteraction.Unfocus: $it")
                 }
             }
         }
@@ -73,12 +73,12 @@ fun rememberFloatingWindowInteractionSource(): MutableInteractionSource {
         ViewCompat.setOnApplyWindowInsetsListener(floatingWindow.decorView) { v, insets ->
             val imeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
             if (!imeVisible && isFocused && floatingWindow.windowParams.flags and FLAG_NOT_FOCUSABLE == 0) {
-                Log.d("", "IME closed, restoring FLAG_NOT_FOCUSABLE")
+                Log.d(TAG, "IME closed, restoring FLAG_NOT_FOCUSABLE")
                 floatingWindow.windowParams.flags =
                     FLAG_NOT_TOUCH_MODAL or FLAG_NOT_FOCUSABLE or FLAG_LAYOUT_NO_LIMITS
                 floatingWindow.update()
                 focusIndication?.let {
-                    Log.d("", "Unfocusing window: $it")
+                    Log.d(TAG, "Unfocusing window: $it")
                     scope.launch {
                         focusManager.clearFocus()
                         focusIndication = null
@@ -94,3 +94,5 @@ fun rememberFloatingWindowInteractionSource(): MutableInteractionSource {
 
     return interactionSource
 }
+
+private const val TAG = "ComposeFloatingWindow"
