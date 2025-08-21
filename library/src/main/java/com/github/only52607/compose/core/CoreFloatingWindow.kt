@@ -10,6 +10,7 @@ import android.widget.FrameLayout
 import androidx.compose.runtime.Recomposer
 import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.content.withStyledAttributes
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
@@ -93,8 +94,40 @@ open class CoreFloatingWindow(
             // Important: Prevent clipping so shadows or elements outside bounds can be drawn
             clipChildren = false
             clipToPadding = false
+
+            // Apply app theme attributes to the container
+            applyAppTheme()
         }
         private set
+
+    /**
+     * Applies app theme attributes to the decorView container.
+     * This helps ensure the floating window follows the app's theme.
+     */
+    private fun ViewGroup.applyAppTheme() {
+        try {
+            // Get theme attributes from the context
+            context.withStyledAttributes(
+                set = null,
+                attrs = intArrayOf(
+                    android.R.attr.colorBackground,
+                    android.R.attr.textColorPrimary,
+                    android.R.attr.colorPrimary,
+                ),
+                block = {
+                    // Apply background color if available
+                    val backgroundColor = getColor(0, 0)
+                    if (backgroundColor != 0) {
+                        setBackgroundColor(backgroundColor)
+                    }
+
+                    recycle()
+                },
+            )
+        } catch (e: Exception) {
+            Log.w("Floating Window", "Failed to apply app theme attributes: ${e.message}", e)
+        }
+    }
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
