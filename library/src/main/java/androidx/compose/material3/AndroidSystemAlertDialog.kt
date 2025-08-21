@@ -17,6 +17,8 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package androidx.compose.material3
 
+import androidx.compose.material3.internal.Strings
+import androidx.compose.material3.internal.getString
 import androidx.compose.material3.tokens.ColorSchemeKeyTokens
 import androidx.compose.material3.tokens.DialogTokens
 import androidx.compose.runtime.Composable
@@ -30,8 +32,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.SystemDialog
 import androidx.compose.ui.window.SystemDialogProperties
-import androidx.compose.material3.internal.getString
-import androidx.compose.material3.internal.Strings
 
 /**
  * <a href="https://m3.material.io/components/dialogs/overview" class="external" target="_blank">Material Design basic dialog</a>.
@@ -90,11 +90,11 @@ fun SystemAlertDialog(
     titleContentColor: Color = AlertDialogDefaults.titleContentColor,
     textContentColor: Color = AlertDialogDefaults.textContentColor,
     tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
-    properties: SystemDialogProperties = SystemDialogProperties()
+    properties: SystemDialogProperties = SystemDialogProperties(),
 ) {
     SystemDialog(
         onDismissRequest = onDismissRequest,
-        properties = properties
+        properties = properties,
     ) {
         // getString was found on the internals of `BasicAlertDialog`
         val dialogPaneDescription = getString(Strings.Dialog)
@@ -102,14 +102,15 @@ fun SystemAlertDialog(
             buttons = {
                 AlertDialogFlowRow(
                     mainAxisSpacing = ButtonsMainAxisSpacing,
-                    crossAxisSpacing = ButtonsCrossAxisSpacing
+                    crossAxisSpacing = ButtonsCrossAxisSpacing,
                 ) {
                     dismissButton?.invoke()
                     confirmButton()
                 }
             },
-            modifier = modifier.then(Modifier
-                .semantics { paneTitle = dialogPaneDescription }
+            modifier = modifier.then(
+                Modifier
+                    .semantics { paneTitle = dialogPaneDescription },
             ),
             icon = icon,
             title = title,

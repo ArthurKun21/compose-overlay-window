@@ -3,6 +3,8 @@
 
 ## Pull Request Type
 <!-- Please select what type of pull request this is: [x] -->
+
+- [ ] Chore
 - [ ] Bugfix
 - [ ] Feature Implementation
 - [ ] Documentation

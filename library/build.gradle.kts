@@ -21,7 +21,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -45,7 +45,7 @@ version = 1.0
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll(
-            "-opt-in=kotlin.uuid.ExperimentalUuidApi"
+            "-opt-in=kotlin.uuid.ExperimentalUuidApi",
         )
     }
 }

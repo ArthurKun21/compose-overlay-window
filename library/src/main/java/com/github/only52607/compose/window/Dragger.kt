@@ -10,11 +10,11 @@ import kotlin.math.roundToInt
 
 /**
  * Adds drag functionality to make a floating window draggable.
- * 
+ *
  * This modifier enables the user to drag the floating window around the screen by
  * applying touch gestures to the composable it's attached to. The window position
  * is automatically constrained to stay within screen bounds.
- * 
+ *
  * Example usage:
  * ```kotlin
  * FloatingActionButton(
@@ -24,7 +24,7 @@ import kotlin.math.roundToInt
  *     Icon(Icons.Filled.Call, "Call")
  * }
  * ```
- * 
+ *
  * @param onDragStart Callback invoked when drag gesture starts. Receives the initial touch offset.
  * @param onDragEnd Callback invoked when drag gesture ends normally.
  * @param onDragCancel Callback invoked when drag gesture is cancelled.

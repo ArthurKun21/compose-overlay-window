@@ -3,7 +3,6 @@ package com.github.only52607.compose.service
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 
-
 /**
  * CompositionLocal that provides access to the current [ComposeServiceFloatingWindow] instance.
  *
