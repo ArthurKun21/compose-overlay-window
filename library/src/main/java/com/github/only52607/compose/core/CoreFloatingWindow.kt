@@ -1,5 +1,6 @@
 package com.github.only52607.compose.core
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.provider.Settings
@@ -105,6 +106,7 @@ open class CoreFloatingWindow(
      * This helps ensure the floating window follows the app's theme.
      * Note: Background color is intentionally not applied to maintain transparency.
      */
+    @SuppressLint("ResourceType")
     private fun ViewGroup.applyAppTheme() {
         try {
             // Get theme attributes from the context
