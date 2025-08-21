@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">app-activity</string>
+    <string name="app_name">ComposeFloatingWindow</string>
 
     <string name="permission_required">Permission required</string>
     <string name="grant_permission">Grant permission</string>
