@@ -457,8 +457,8 @@ private fun SystemDialogLayout(
         modifier = modifier,
     ) { measurables, constraints ->
         val placeables = measurables.map { it.measure(constraints) }
-        val width = placeables.maxBy { it.width }.width
-        val height = placeables.maxBy { it.height }.height
+        val width = placeables.maxByOrNull { it.width }?.width ?: constraints.minWidth
+        val height = placeables.maxByOrNull { it.height }?.height ?: constraints.minHeight
         layout(width, height) {
             placeables.forEach { it.placeRelative(0, 0) }
         }
