@@ -61,7 +61,7 @@ internal fun rememberCoreFloatingWindowInteractionSource(
                     focusIndication = null
                     Log.d(TAG, "FocusInteraction.Unfocus: $it")
 
-                    if (floatingWindow.windowParams.flags and FLAG_NOT_FOCUSABLE.inv() != 0) {
+                    if ((floatingWindow.windowParams.flags and FLAG_NOT_FOCUSABLE) == 0) {
                         Log.d(TAG, "Restoring FLAG_NOT_FOCUSABLE")
                         floatingWindow.windowParams.flags =
                             floatingWindow.windowParams.flags or FLAG_NOT_FOCUSABLE
