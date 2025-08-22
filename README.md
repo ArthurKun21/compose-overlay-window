@@ -70,7 +70,7 @@ floatingWindow.setContent {
 floatingWindow.show()
 ```
 
-> See [Sample App](https://github.com/only52607/compose-floating-window/tree/master/app).
+> See [Sample App](./samples/).
 
 ## Advanced Usage
 
