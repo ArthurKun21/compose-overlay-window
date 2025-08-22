@@ -42,7 +42,13 @@ dependencyResolutionManagement {
 
 ```groovy
 dependencies {
-    implementation "com.github.ArthurKun21:compose-floating-window:1.0"
+    implementation "com.github.ArthurKun21:compose-floating-window:<TAG>"
+}
+```
+
+```kts
+dependencies {
+    implementation("com.github.ArthurKun21:compose-floating-window:<TAG>")
 }
 ```
 
