@@ -102,4 +102,4 @@ fun rememberServiceFloatingWindowInteractionSource(): MutableInteractionSource {
     return interactionSource
 }
 
-private const val TAG = "LocalServiceFloatingWindow"
+private const val TAG = "ComposeServiceFloatingWindow"
