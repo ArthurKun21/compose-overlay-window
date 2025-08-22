@@ -29,6 +29,7 @@ repositories {
 ```
 
 - If the Gradle version is greater than or equal to 7.0, add it in the settings.gradle file.
+  
 ```groovy
 dependencyResolutionManagement {
     repositories {
@@ -38,6 +39,7 @@ dependencyResolutionManagement {
 ```
 
 - Add `compose-floating-window` Dependency
+
 ```groovy
 dependencies {
     implementation "com.github.ArthurKun21:compose-floating-window:1.0"
@@ -47,6 +49,7 @@ dependencies {
 ### Grant Floating Window Permission
 
 Add to `AndroidManifest.xml`
+
 ```xml
 <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 ```
@@ -96,6 +99,7 @@ val floatingWindow = LocalComposeFloatingWindow.current
 When the Context of the floating window is set to Application, using AlertDialog and Dialog in the Compose interface of the floating window may result in a 'token is null' exception. In such cases, you can use the SystemAlertDialog or SystemDialog components, which can be used in the same way as the built-in AlertDialog and Dialog components.
 
 Example：
+
 ```kotlin
 SystemAlertDialog(
     onDismissRequest = { showDialog = false },
@@ -125,7 +129,7 @@ fun MyScreen(
 }
 ```
 
-> See https://developer.android.com/jetpack/compose/libraries#viewmodel
+> See [https://developer.android.com/jetpack/compose/libraries#viewmodel](https://developer.android.com/jetpack/compose/libraries#viewmodel)
 
 ## License
 
