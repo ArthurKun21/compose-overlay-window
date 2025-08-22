@@ -1,6 +1,6 @@
 # compose-floating-window
 
-[![Release](https://jitpack.io/v/only52607/compose-floating-window.svg)](https://jitpack.io/#User/Repo)
+[![Release](https://jitpack.io/v/ArthurKun21/compose-overlay-window.svg)](https://jitpack.io/#ArthurKun21/compose-overlay-window)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Global Floating Window Framework based on Jetpack Compose
