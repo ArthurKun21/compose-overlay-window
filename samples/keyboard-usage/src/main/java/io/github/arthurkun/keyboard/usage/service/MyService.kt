@@ -10,7 +10,6 @@ import io.github.arthurkun.keyboard.usage.ui.floating.FloatingServiceScreen
 class MyService : Service() {
     companion object {
 
-
         fun start(context: Context) {
             val intent = Intent(context, MyService::class.java)
             context.startService(intent)
