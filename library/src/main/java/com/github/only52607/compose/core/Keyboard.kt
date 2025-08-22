@@ -2,9 +2,7 @@ package com.github.only52607.compose.core
 
 import android.content.Context
 import android.util.Log
-import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-import android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.interaction.FocusInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -66,7 +64,7 @@ fun rememberCoreFloatingWindowInteractionSource(
                     if (floatingWindow.windowParams.flags and FLAG_NOT_FOCUSABLE.inv() != 0) {
                         Log.d(TAG, "Restoring FLAG_NOT_FOCUSABLE")
                         floatingWindow.windowParams.flags =
-                            FLAG_NOT_TOUCH_MODAL or FLAG_NOT_FOCUSABLE or FLAG_LAYOUT_NO_LIMITS
+                            floatingWindow.windowParams.flags or FLAG_NOT_FOCUSABLE
                         floatingWindow.update()
                     }
                 }
@@ -82,7 +80,7 @@ fun rememberCoreFloatingWindowInteractionSource(
             if (!imeVisible && isFocused && floatingWindow.windowParams.flags and FLAG_NOT_FOCUSABLE == 0) {
                 Log.d(TAG, "IME closed, restoring FLAG_NOT_FOCUSABLE")
                 floatingWindow.windowParams.flags =
-                    FLAG_NOT_TOUCH_MODAL or FLAG_NOT_FOCUSABLE or FLAG_LAYOUT_NO_LIMITS
+                    floatingWindow.windowParams.flags or FLAG_NOT_FOCUSABLE
                 floatingWindow.update()
                 focusIndication?.let {
                     Log.d(TAG, "Unfocusing window: $it")
