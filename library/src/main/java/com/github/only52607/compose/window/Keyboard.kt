@@ -11,4 +11,3 @@ fun rememberFloatingWindowInteractionSource(): MutableInteractionSource {
 
     return interactionSource
 }
-
