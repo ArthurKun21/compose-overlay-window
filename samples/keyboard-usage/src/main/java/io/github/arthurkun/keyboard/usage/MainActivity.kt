@@ -69,7 +69,6 @@ class MainActivity : AppCompatActivity() {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-
                         OutlinedTextField(
                             value = innerText,
                             onValueChange = { innerText = it },
@@ -91,9 +90,6 @@ class MainActivity : AppCompatActivity() {
                         ServiceSample(
                             askForDialog = { showDialogPermission = true },
                         )
-
-
-
                     }
                 }
 

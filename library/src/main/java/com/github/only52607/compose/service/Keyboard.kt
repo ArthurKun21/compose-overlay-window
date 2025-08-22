@@ -1,6 +1,5 @@
 package com.github.only52607.compose.service
 
-
 import android.content.Context
 import android.util.Log
 import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
