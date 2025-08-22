@@ -14,7 +14,7 @@ internal fun Modifier.dragCoreFloatingWindow(
     onDragEnd: () -> Unit = { },
     onDragCancel: () -> Unit = { },
     onDrag: ((Int, Int) -> Unit)? = null,
-) = this.pointerInput(Unit) {
+) = this.pointerInput(floatingWindow) {
     detectDragGestures(
         onDragStart = onDragStart,
         onDragEnd = onDragEnd,
