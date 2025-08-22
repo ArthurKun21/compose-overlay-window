@@ -40,7 +40,7 @@ dependencyResolutionManagement {
 - Add `compose-floating-window` Dependency
 ```groovy
 dependencies {
-    implementation "com.github.only52607:compose-floating-window:1.0"
+    implementation "com.github.ArthurKun21:compose-floating-window:1.0"
 }
 ```
 
