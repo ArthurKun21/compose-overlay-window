@@ -32,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.only52607.compose.core.checkOverlayPermission
 import com.github.only52607.compose.window.ComposeFloatingWindow
 import io.github.arthurkun.keyboard.usage.service.MyService
+import io.github.arthurkun.keyboard.usage.service.ServiceStatus
 import io.github.arthurkun.keyboard.usage.ui.floating.FloatingScreen
 import io.github.arthurkun.keyboard.usage.ui.theme.ComposeFloatingWindowTheme
 
@@ -180,7 +181,7 @@ private fun ServiceSample(
     askForDialog: () -> Unit,
 ) {
     val context = LocalContext.current
-    val isServiceRunning by MyService.serviceStarted.collectAsStateWithLifecycle()
+    val isServiceRunning by ServiceStatus.serviceStarted.collectAsStateWithLifecycle()
 
     Text(
         "Service",
