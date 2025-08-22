@@ -22,7 +22,7 @@ import androidx.core.view.WindowInsetsCompat
 import kotlinx.coroutines.launch
 
 @Composable
-fun rememberCoreFloatingWindowInteractionSource(
+internal fun rememberCoreFloatingWindowInteractionSource(
     floatingWindow: CoreFloatingWindow,
 ): MutableInteractionSource {
     val context = LocalContext.current
