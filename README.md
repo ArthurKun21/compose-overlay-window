@@ -7,7 +7,7 @@ Global Floating Window Framework based on Jetpack Compose
 
 ## Preview
 
-![Preview](/preview/example.gif)
+![Preview](docs/assets/example.gif)
 
 ## Features
 
