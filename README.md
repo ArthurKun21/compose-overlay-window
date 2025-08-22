@@ -5,8 +5,6 @@
 
 Global Floating Window Framework based on Jetpack Compose
 
-[简体中文](README_CN.md)
-
 ## Preview
 
 ![Preview](/preview/example.gif)
