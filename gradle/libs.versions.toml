@@ -4,7 +4,7 @@ target-sdk = "36"
 min-sdk = "24"
 
 agp = "8.13.0"
-kotlin = "2.2.10"
+kotlin = "2.2.20"
 
 android-core-ktx = "1.17.0"
 appcompat = "1.7.1"
@@ -23,7 +23,7 @@ google-material = "1.13.0"
 leakcanary = "2.14"
 
 hilt = "2.57.1"
-ksp = "2.2.10-2.0.2"
+ksp = "2.2.20-2.0.3"
 
 datastore = "1.1.7"
 
