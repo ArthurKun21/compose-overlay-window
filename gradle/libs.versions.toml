@@ -23,7 +23,7 @@ google-material = "1.13.0"
 leakcanary = "2.14"
 
 hilt = "2.57.2"
-ksp = "2.2.20-2.0.3"
+ksp = "2.2.20-2.0.4"
 
 datastore = "1.1.7"
 
