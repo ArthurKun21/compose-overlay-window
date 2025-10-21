@@ -73,6 +73,30 @@ floatingWindow.show()
 
 ## Advanced Usage
 
+### Apply Material3 Theme
+
+To ensure proper styling and colors in your floating window, wrap your content in a MaterialTheme:
+
+```kotlin
+val floatingWindow = ComposeFloatingWindow(applicationContext)
+floatingWindow.setContent {
+    MaterialTheme(
+        colorScheme = lightColorScheme()
+    ) {
+        FloatingActionButton(
+            modifier = Modifier.dragFloatingWindow(),
+            onClick = { /* action */ }
+        ) {
+            Icon(Icons.Filled.Call, "Call")
+        }
+    }
+}
+floatingWindow.show()
+```
+
+> **Important**: Always wrap your floating window content in MaterialTheme for proper theming.
+> See [THEMING_GUIDE.md](THEMING_GUIDE.md) for comprehensive theming instructions.
+
 ### Make Floating Window Draggable
 
 Use the `Modifier.dragFloatingWindow()` modifier on the component you want to make draggable. Example:
