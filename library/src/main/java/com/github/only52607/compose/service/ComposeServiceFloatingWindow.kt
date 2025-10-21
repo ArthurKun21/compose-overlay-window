@@ -2,6 +2,7 @@
 
 package com.github.only52607.compose.service
 
+import android.app.Application
 import android.content.Context
 import android.util.Log
 import android.view.WindowManager
@@ -11,12 +12,14 @@ import androidx.compose.runtime.Recomposer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.compositionContext
 import androidx.core.view.isNotEmpty
+import androidx.lifecycle.HasDefaultViewModelProviderFactory
+import androidx.lifecycle.SavedStateViewModelFactory
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.github.only52607.compose.core.CoreFloatingWindow
 import com.github.only52607.compose.core.defaultLayoutParams
-import com.github.only52607.compose.window.LocalFloatingWindow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -37,6 +40,18 @@ import kotlin.coroutines.cancellation.CancellationException
  * } // Window is hidden and resources are released here
  * ```
  *
+ * **ViewModel Support**: This class now implements [HasDefaultViewModelProviderFactory], enabling
+ * full ViewModel support in service-based floating windows. You can use ViewModels just like in
+ * regular Activities:
+ * ```kotlin
+ * @Composable
+ * fun MyFloatingContent(
+ *     viewModel: MyViewModel = viewModel()
+ * ) {
+ *     // Use viewModel here
+ * }
+ * ```
+ *
  * Remember to declare the `SYSTEM_ALERT_WINDOW` permission in your AndroidManifest.xml and
  * request it at runtime if targeting Android M (API 23) or higher.
  *
@@ -52,13 +67,32 @@ class ComposeServiceFloatingWindow(
     context = context,
     windowParams = windowParams,
     tag = SERVICE_TAG,
-) {
+),
+    HasDefaultViewModelProviderFactory {
+
+    override val defaultViewModelProviderFactory: ViewModelProvider.Factory by lazy {
+        SavedStateViewModelFactory(
+            context.applicationContext as Application,
+            this@ComposeServiceFloatingWindow,
+            null,
+        )
+    }
+
     /**
      * Sets the Jetpack Compose content for the floating window.
      *
      * This method creates a [ComposeView] and sets your [content] within it.
      * It also sets up the necessary CompositionLocal provider for [LocalServiceFloatingWindow]
      * and connects the view to this window's lifecycle, ViewModel store, and saved state registry.
+     *
+     * **ViewModel Support**: You can now use ViewModels directly in your content:
+     * ```kotlin
+     * floatingWindow.setContent {
+     *     MaterialTheme {
+     *         MyScreen(viewModel = viewModel())  // ViewModel support!
+     *     }
+     * }
+     * ```
      *
      * **Important**: To apply Material3 theming to your floating window content, wrap your
      * content in a MaterialTheme:
