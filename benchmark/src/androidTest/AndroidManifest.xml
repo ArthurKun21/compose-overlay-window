@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Mark the app as debuggable to enable profiling -->
+    <application android:debuggable="true" />
+</manifest>
