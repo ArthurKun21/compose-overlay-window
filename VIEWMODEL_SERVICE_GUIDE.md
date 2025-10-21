@@ -1,23 +1,27 @@
 # ViewModel Support for Service-Based Floating Windows
 
 ## Overview
-`ComposeServiceFloatingWindow` now provides full ViewModel support, enabling you to use ViewModels in floating windows attached to Services, just like you would in regular Activities.
+This guide explains how to use ViewModels in floating windows attached to Services. Since Services don't have the same lifecycle as Activities, ViewModels must be managed manually or through dependency injection frameworks like Hilt.
 
-## What Changed
+## Important Note
 
-The `ComposeServiceFloatingWindow` class now implements `HasDefaultViewModelProviderFactory`, which provides:
-- Automatic ViewModel creation using `viewModel()` function
-- ViewModel lifecycle tied to the floating window
-- State preservation across configuration changes
-- Proper cleanup when the window is destroyed
+**`ComposeServiceFloatingWindow` does NOT implement `HasDefaultViewModelProviderFactory`** to avoid conflicts with dependency injection frameworks like Hilt. This is intentional and by design.
+
+## Why Manual ViewModel Management?
+
+Unlike Activities, Services require explicit ViewModel management because:
+- Services don't have built-in ViewModel support
+- Dependency injection frameworks (Hilt, Koin) handle ViewModel creation differently in Services
+- Automatic ViewModel factories can conflict with Hilt's injection mechanism
+- Manual management gives you more control over the ViewModel lifecycle
 
 ## Basic Usage
 
-### Simple ViewModel in Service
+### Method 1: Manual ViewModel Creation (Recommended for Simple Cases)
 
 ```kotlin
 // Your ViewModel
-class FloatingViewModel : ViewModel() {
+class FloatingViewModel(private val repository: Repository) : ViewModel() {
     private val _count = MutableStateFlow(0)
     val count: StateFlow<Int> = _count.asStateFlow()
     
@@ -28,16 +32,20 @@ class FloatingViewModel : ViewModel() {
 
 // Your Service
 class MyOverlayService : Service() {
+    private var viewModel: FloatingViewModel? = null
     private var floatingWindow: ComposeServiceFloatingWindow? = null
     
     override fun onCreate() {
         super.onCreate()
         
+        // Create ViewModel manually
+        viewModel = FloatingViewModel(MyRepository())
+        
         floatingWindow = ComposeServiceFloatingWindow(applicationContext).apply {
             setContent {
                 MaterialTheme {
-                    // ViewModel is automatically created and managed!
-                    MyFloatingContent(viewModel = viewModel())
+                    // Pass ViewModel as parameter
+                    viewModel?.let { MyFloatingContent(it) }
                 }
             }
         }
@@ -47,14 +55,13 @@ class MyOverlayService : Service() {
     
     override fun onDestroy() {
         floatingWindow?.close()
+        viewModel = null  // Clean up ViewModel
         super.onDestroy()
     }
 }
 
 @Composable
-fun MyFloatingContent(
-    viewModel: FloatingViewModel = viewModel()
-) {
+fun MyFloatingContent(viewModel: FloatingViewModel) {
     val count by viewModel.count.collectAsStateWithLifecycle()
     
     FloatingActionButton(
@@ -184,11 +191,12 @@ class MyService : Service() {
 }
 ```
 
-### Example 4: With Dependency Injection (Hilt)
+### Method 2: With Dependency Injection (Hilt) - Recommended for Production
 
-Using Hilt for dependency injection:
+Using Hilt for automatic dependency injection (this is the recommended approach for production apps):
 
 ```kotlin
+// Your HiltViewModel
 @HiltViewModel
 class FloatingViewModel @Inject constructor(
     private val userRepository: UserRepository,
@@ -203,45 +211,81 @@ class FloatingViewModel @Inject constructor(
     }
 }
 
+// Service Overlay wrapper (injected by Hilt)
+@ServiceScoped
+class ServiceOverlay @Inject constructor(
+    private val userPreferencesRepository: UserPreferencesRepository,
+    @ApplicationContext private val context: Context,
+) {
+    private var viewModel: FloatingViewModel? = null
+    private var floatingWindow: ComposeServiceFloatingWindow? = null
+    
+    init {
+        floatingWindow = createFloatingWindow()
+    }
+    
+    private fun createFloatingWindow(): ComposeServiceFloatingWindow {
+        // Create ViewModel with Hilt-injected dependencies
+        viewModel = FloatingViewModel(userPreferencesRepository)
+        
+        return ComposeServiceFloatingWindow(context).apply {
+            setContent {
+                MaterialTheme {
+                    // Pass ViewModel as parameter
+                    viewModel?.let { FloatingScreen(it) }
+                }
+            }
+        }
+    }
+    
+    fun show() {
+        floatingWindow?.show()
+    }
+    
+    fun close() {
+        floatingWindow?.close()
+        viewModel = null
+    }
+}
+
+// Your Service with Hilt
 @AndroidEntryPoint
 class OverlayService : Service() {
     
     @Inject
-    lateinit var userRepository: UserRepository
-    
-    private var floatingWindow: ComposeServiceFloatingWindow? = null
+    lateinit var serviceOverlay: ServiceOverlay
     
     override fun onCreate() {
         super.onCreate()
-        
-        floatingWindow = ComposeServiceFloatingWindow(applicationContext).apply {
-            setContent {
-                MaterialTheme {
-                    // Hilt automatically provides the ViewModel
-                    FloatingScreen(viewModel = hiltViewModel())
-                }
-            }
-        }
-        
-        floatingWindow?.show()
+        serviceOverlay.show()
+    }
+    
+    override fun onDestroy() {
+        serviceOverlay.close()
+        super.onDestroy()
     }
 }
 
 @Composable
-fun FloatingScreen(
-    viewModel: FloatingViewModel = hiltViewModel()
-) {
+fun FloatingScreen(viewModel: FloatingViewModel) {
     val userData by viewModel.userData.collectAsStateWithLifecycle()
     
     // Use the data
 }
 ```
 
+**Why this pattern works:**
+- ✅ No conflicts with Hilt's dependency injection
+- ✅ ViewModel is created with Hilt-injected dependencies
+- ✅ Clean separation of concerns with ServiceOverlay wrapper
+- ✅ Proper lifecycle management
+- ✅ Avoids the `HasDefaultViewModelProviderFactory` issue
+
 ## Migration Guide
 
-### Before (Manual ViewModel Management)
+### Current Best Practice (Manual ViewModel Management)
 
-Previously, you had to manually create and manage ViewModels:
+The recommended approach is to manually create and manage ViewModels in Services:
 
 ```kotlin
 class ServiceOverlay @Inject constructor(
@@ -272,22 +316,26 @@ class ServiceOverlay @Inject constructor(
 }
 ```
 
-### After (Automatic ViewModel Support)
-
-Now you can use ViewModels directly with `viewModel()` function:
+**Example (This is the correct approach):**
 
 ```kotlin
+@ServiceScoped
 class ServiceOverlay @Inject constructor(
+    private val userPreferencesRepository: UserPreferencesRepository,
     @ApplicationContext private val context: Context,
 ) {
+    private var viewModel: FloatingViewModel? = null
     private var floatingWindow: ComposeServiceFloatingWindow? = null
     
     init {
+        // Create ViewModel manually (with or without Hilt dependencies)
+        viewModel = FloatingViewModel(userPreferencesRepository)
+        
         floatingWindow = ComposeServiceFloatingWindow(context).apply {
             setContent {
                 MaterialTheme {
-                    // ViewModel is automatically created and managed!
-                    FloatingScreen(viewModel = viewModel())
+                    // Pass ViewModel as parameter
+                    viewModel?.let { FloatingScreen(it) }
                 }
             }
         }
@@ -295,35 +343,56 @@ class ServiceOverlay @Inject constructor(
     
     fun close() {
         floatingWindow?.close()
-        // ViewModel is automatically cleaned up!
+        viewModel = null  // Manual cleanup
     }
 }
 ```
+
+### Why Not Use `HasDefaultViewModelProviderFactory`?
+
+`ComposeServiceFloatingWindow` intentionally **does NOT** implement `HasDefaultViewModelProviderFactory` because:
+
+1. **Hilt Conflicts**: Implementing this interface causes crashes when used with Hilt in Services
+2. **Service Lifecycle**: Services don't have the same lifecycle as Activities, making automatic ViewModel factories problematic
+3. **Dependency Injection**: DI frameworks like Hilt and Koin need to control ViewModel creation
+4. **Explicit Management**: Manual management is clearer and more predictable in Service contexts
 
 ## Best Practices
 
 ### ✅ DO:
 
-1. **Use `viewModel()` function** - Let the framework manage lifecycle
+1. **Create ViewModels manually in your Service** - Maintain explicit control
    ```kotlin
-   @Composable
-   fun MyContent(viewModel: MyViewModel = viewModel())
+   class MyService : Service() {
+       private var viewModel: MyViewModel? = null
+       
+       override fun onCreate() {
+           viewModel = MyViewModel(repository)
+       }
+   }
    ```
 
-2. **Collect StateFlow with lifecycle** - Use `collectAsStateWithLifecycle()`
+2. **Pass ViewModels as parameters to Composables**
+   ```kotlin
+   @Composable
+   fun MyContent(viewModel: MyViewModel)  // No default parameter
+   ```
+
+3. **Collect StateFlow with lifecycle** - Use `collectAsStateWithLifecycle()`
    ```kotlin
    val state by viewModel.state.collectAsStateWithLifecycle()
    ```
 
-3. **Clean up in ViewModel** - Override `onCleared()` for cleanup
+4. **Clean up ViewModels in Service** - Set to null in onDestroy
    ```kotlin
-   override fun onCleared() {
-       super.onCleared()
-       // Cleanup resources
+   override fun onDestroy() {
+       floatingWindow?.close()
+       viewModel = null  // Important!
+       super.onDestroy()
    }
    ```
 
-4. **Use viewModelScope** - For coroutines in ViewModels
+5. **Use viewModelScope** - For coroutines in ViewModels
    ```kotlin
    fun loadData() = viewModelScope.launch {
        // Coroutine code
@@ -332,23 +401,24 @@ class ServiceOverlay @Inject constructor(
 
 ### ❌ DON'T:
 
-1. **Don't manually create ViewModels** - Use `viewModel()` instead
+1. **Don't use `viewModel()` function in Service context** - It won't work properly
    ```kotlin
-   // ❌ Don't do this
-   val vm = remember { MyViewModel() }
-   
-   // ✅ Do this
-   val vm: MyViewModel = viewModel()
-   ```
-
-2. **Don't store ViewModels in Service** - Let the window manage them
-   ```kotlin
-   // ❌ Don't do this
-   class MyService : Service() {
-       private var viewModel: MyViewModel? = null
+   // ❌ Don't do this in Services
+   floatingWindow.setContent {
+       MyContent(viewModel = viewModel())  // Will crash!
    }
    
-   // ✅ Do this - use viewModel() in Composable
+   // ✅ Do this instead
+   val vm = MyViewModel(repository)
+   floatingWindow.setContent {
+       MyContent(vm)  // Pass as parameter
+   }
+   ```
+
+2. **Don't try to use `HasDefaultViewModelProviderFactory`** - Causes Hilt conflicts
+   ```kotlin
+   // ❌ ComposeServiceFloatingWindow does NOT implement this
+   // This is intentional to avoid Hilt conflicts
    ```
 
 3. **Don't forget to close the window** - This cleans up ViewModels

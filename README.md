@@ -138,9 +138,9 @@ SystemAlertDialog(
 
 ### ViewModel
 
-You can access the ViewModel from any Composable by calling the viewModel() function.
+#### Activity-Based Windows
 
-**Both `ComposeFloatingWindow` and `ComposeServiceFloatingWindow` now support ViewModels!**
+`ComposeFloatingWindow` supports ViewModels through the standard `viewModel()` function:
 
 ```kotlin
 class MyViewModel : ViewModel() { /*...*/ }
@@ -153,9 +153,26 @@ fun MyScreen(
 }
 ```
 
-**Service-Based Floating Windows**: `ComposeServiceFloatingWindow` now has full ViewModel support,
-enabling you to use ViewModels in Services just like in Activities. See [VIEWMODEL_SERVICE_GUIDE.md](VIEWMODEL_SERVICE_GUIDE.md)
-for complete examples and best practices.
+#### Service-Based Windows
+
+For `ComposeServiceFloatingWindow`, ViewModels must be created manually in your Service and passed as parameters:
+
+```kotlin
+class MyService : Service() {
+    private var viewModel: MyViewModel? = null
+    
+    override fun onCreate() {
+        viewModel = MyViewModel(repository)
+        floatingWindow.setContent {
+            viewModel?.let { MyContent(it) }
+        }
+    }
+}
+```
+
+**Why manual?** This approach prevents conflicts with Hilt/Dagger and gives you explicit control over ViewModel lifecycle in Service contexts.
+
+See [VIEWMODEL_SERVICE_GUIDE.md](VIEWMODEL_SERVICE_GUIDE.md) for complete examples including Hilt integration.
 
 > See https://developer.android.com/jetpack/compose/libraries#viewmodel
 
