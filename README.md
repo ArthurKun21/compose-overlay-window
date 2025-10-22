@@ -17,6 +17,9 @@ Global Floating Window Framework based on Jetpack Compose
 - ViewModel support.
 - Support for draggable floating windows.
 - Dialog components based on the Application Context.
+- Smooth fade in/out animations.
+- Automatic resize stability (no jumping when content size changes).
+- Material3 theming support.
 
 ## Basic Usage
 

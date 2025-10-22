@@ -98,6 +98,44 @@ open class CoreFloatingWindow(
 
             // Apply app theme attributes to the container
             applyAppTheme()
+            
+            // Add layout change listener to prevent position jumps when content size changes
+            addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+                if (_isShowing.value && !_isDestroyed.value) {
+                    val oldWidth = oldRight - oldLeft
+                    val oldHeight = oldBottom - oldTop
+                    val newWidth = right - left
+                    val newHeight = bottom - top
+                    
+                    // Only adjust if size actually changed and this is not the initial layout
+                    if (oldWidth > 0 && oldHeight > 0 && (oldWidth != newWidth || oldHeight != newHeight)) {
+                        // Calculate the size difference
+                        val widthDiff = newWidth - oldWidth
+                        val heightDiff = newHeight - oldHeight
+                        
+                        // Adjust position to keep the window centered at the same point
+                        // This prevents the "jump" effect when content size changes
+                        lifecycleCoroutineScope.launch {
+                            mutex.withLock {
+                                try {
+                                    // Adjust x and y to compensate for size change
+                                    // This keeps the visual center more stable
+                                    windowParams.x -= widthDiff / 2
+                                    windowParams.y -= heightDiff / 2
+                                    
+                                    // Ensure the window stays within screen bounds
+                                    windowParams.x = windowParams.x.coerceIn(0, maxXCoordinate)
+                                    windowParams.y = windowParams.y.coerceIn(0, maxYCoordinate)
+                                    
+                                    windowManager.updateViewLayout(decorView, windowParams)
+                                } catch (e: Exception) {
+                                    Log.w(tag, "Failed to adjust position on size change: ${e.message}")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         private set
 
