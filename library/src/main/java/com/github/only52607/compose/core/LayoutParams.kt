@@ -31,7 +31,6 @@ internal fun defaultLayoutParams(context: Context) = WindowManager.LayoutParams(
     width = WindowManager.LayoutParams.WRAP_CONTENT
     format = PixelFormat.TRANSLUCENT
     gravity = Gravity.START or Gravity.TOP
-    windowAnimations = android.R.style.Animation_Dialog
     flags =
         (
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL // Allows touches to pass through

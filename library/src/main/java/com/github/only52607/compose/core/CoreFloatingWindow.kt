@@ -189,7 +189,7 @@ open class CoreFloatingWindow(
         get() = display.metrics.heightPixels - decorView.measuredHeight
 
     /**
-     * Shows the floating window.
+     * Shows the floating window with a fade-in animation.
      *
      * Adds the [decorView] to the [WindowManager] using the configured [windowParams].
      * Moves the lifecycle state to STARTED.
@@ -227,9 +227,18 @@ open class CoreFloatingWindow(
                 Log.w(tag, "DecorView already has a parent. Removing it.")
                 (decorView.parent as? ViewGroup)?.removeView(decorView)
             }
+            // Set initial alpha to 0 for fade-in animation
+            decorView.alpha = 0f
             windowManager.addView(decorView, windowParams)
-            // Move lifecycle to STARTED only after view is successfully added
-            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+            // Animate fade-in
+            decorView.animate()
+                .alpha(1f)
+                .setDuration(ANIMATION_DURATION)
+                .withEndAction {
+                    // Move lifecycle to STARTED only after view is successfully added
+                    lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+                }
+                .start()
             // Update state last
             _isShowing.update { true }
         } catch (e: Exception) {
@@ -285,7 +294,7 @@ open class CoreFloatingWindow(
     }
 
     /**
-     * Hides the floating window.
+     * Hides the floating window with fade-out animation.
      *
      * Removes the [decorView] from the [WindowManager].
      * Moves the lifecycle state to STOPPED.
@@ -303,9 +312,21 @@ open class CoreFloatingWindow(
 
         _isShowing.update { false }
         try {
-            // Check if view is still attached before removing
+            // Check if view is still attached before animating removal
             if (decorView.parent != null) {
-                windowManager.removeViewImmediate(decorView) // Use immediate for synchronous removal
+                // Animate fade-out
+                decorView.animate()
+                    .alpha(0f)
+                    .setDuration(ANIMATION_DURATION)
+                    .withEndAction {
+                        // Remove view after animation
+                        try {
+                            windowManager.removeViewImmediate(decorView)
+                        } catch (e: Exception) {
+                            Log.e(tag, "Error removing window: ${e.localizedMessage}", e)
+                        }
+                    }
+                    .start()
             } else {
                 Log.w(tag, "Hide called but DecorView has no parent.")
             }
@@ -436,5 +457,12 @@ open class CoreFloatingWindow(
         // savedStateRegistryController is tied to the lifecycle/owner, should be handled.
 
         Log.d(tag, "FloatingWindow destroyed successfully.")
+    }
+
+    companion object {
+        /**
+         * Duration in milliseconds for fade in/out animations when showing/hiding the window.
+         */
+        private const val ANIMATION_DURATION = 300L
     }
 }
