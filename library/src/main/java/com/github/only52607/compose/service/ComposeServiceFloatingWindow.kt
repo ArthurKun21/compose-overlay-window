@@ -16,7 +16,6 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.github.only52607.compose.core.CoreFloatingWindow
 import com.github.only52607.compose.core.defaultLayoutParams
-import com.github.only52607.compose.window.LocalFloatingWindow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -35,6 +34,34 @@ import kotlin.coroutines.cancellation.CancellationException
  *     window.show()
  *     // ... interact with the window ...
  * } // Window is hidden and resources are released here
+ * ```
+ *
+ * **ViewModel Support**: For ViewModels in service-based floating windows:
+ * 
+ * **Without Dependency Injection:**
+ * - ViewModels can be created manually and passed to your composables
+ * - Store the ViewModel reference in your Service or wrapper class
+ * 
+ * **With Hilt or Dagger:**
+ * - Create ViewModels through Hilt injection in your Service
+ * - Pass them to your composables as parameters
+ * - Use `@HiltViewModel` annotation for automatic injection
+ * 
+ * Example with manual ViewModel:
+ * ```kotlin
+ * class MyService : Service() {
+ *     private var viewModel: MyViewModel? = null
+ *     private var window: ComposeServiceFloatingWindow? = null
+ *     
+ *     override fun onCreate() {
+ *         viewModel = MyViewModel(repository)
+ *         window = ComposeServiceFloatingWindow(applicationContext).apply {
+ *             setContent {
+ *                 viewModel?.let { MyContent(it) }
+ *             }
+ *         }
+ *     }
+ * }
  * ```
  *
  * Remember to declare the `SYSTEM_ALERT_WINDOW` permission in your AndroidManifest.xml and
@@ -57,8 +84,32 @@ class ComposeServiceFloatingWindow(
      * Sets the Jetpack Compose content for the floating window.
      *
      * This method creates a [ComposeView] and sets your [content] within it.
-     * It also sets up the necessary CompositionLocal provider for [LocalFloatingWindow]
+     * It also sets up the necessary CompositionLocal provider for [LocalServiceFloatingWindow]
      * and connects the view to this window's lifecycle, ViewModel store, and saved state registry.
+     *
+     * **ViewModel Usage**: Create ViewModels in your Service and pass them as parameters:
+     * ```kotlin
+     * // In your Service
+     * private var viewModel: MyViewModel? = null
+     * 
+     * floatingWindow.setContent {
+     *     MaterialTheme {
+     *         viewModel?.let { MyScreen(it) }
+     *     }
+     * }
+     * ```
+     *
+     * **Important**: To apply Material3 theming to your floating window content, wrap your
+     * content in a MaterialTheme:
+     * ```kotlin
+     * floatingWindow.setContent {
+     *     MaterialTheme(
+     *         colorScheme = yourColorScheme
+     *     ) {
+     *         YourContent()
+     *     }
+     * }
+     * ```
      *
      * @param content The composable function defining the UI of the floating window.
      * @throws IllegalStateException if called after [checkDestroyed] or [close] has been invoked.

@@ -31,6 +31,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "ComposeFloatingWindow"
 include(":library")
+include(":benchmark")
 include(":samples:app-activity")
 include(":samples:service-hilt")
 include(":samples:fullscreen-dialog")
