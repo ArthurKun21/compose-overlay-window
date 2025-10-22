@@ -46,7 +46,7 @@ open class CoreFloatingWindow(
     // Use a SupervisorJob so failure of one child doesn't cause others to fail
     // Use a custom scope tied to the window's lifecycle for managing window-specific coroutines
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.e(tag, "Coroutine Exception: ${throwable.localizedMessage}", throwable)
+        Log.e(tag, "Coroutine Exception: ${throwable.message}", throwable)
     }
     internal val coroutineContext = AndroidUiDispatcher.CurrentThread
     internal val lifecycleCoroutineScope = CoroutineScope(
@@ -288,7 +288,7 @@ open class CoreFloatingWindow(
             try {
                 windowManager.updateViewLayout(decorView, windowParams)
             } catch (e: Exception) {
-                Log.e(tag, "Error updating window layout: ${e.localizedMessage}", e)
+                Log.e(tag, "Error updating window layout: ${e.message}", e)
             }
         }
     }
@@ -332,7 +332,7 @@ open class CoreFloatingWindow(
             }
         } catch (e: Exception) {
             // Catch potential exceptions (e.g., view not attached)
-            Log.e(tag, "Error hiding window: ${e.localizedMessage}", e)
+            Log.e(tag, "Error hiding window: ${e.message}", e)
         } finally {
             // Move lifecycle to STOPPED regardless of removal success,
             // as the intention is to stop interaction.
@@ -418,7 +418,7 @@ open class CoreFloatingWindow(
             } catch (e: Exception) {
                 Log.e(
                     tag,
-                    "Error hiding window during destruction: ${e.localizedMessage}",
+                    "Error hiding window during destruction: ${e.message}",
                     e,
                 )
             }
