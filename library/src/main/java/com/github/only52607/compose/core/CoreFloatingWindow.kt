@@ -228,11 +228,11 @@ open class CoreFloatingWindow(
                 (decorView.parent as? ViewGroup)?.removeView(decorView)
             }
             // Set initial alpha to 0 for fade-in animation
-            decorView.alpha = 0f
+            decorView.alpha = INVISIBLE_ALPHA
             windowManager.addView(decorView, windowParams)
             // Animate fade-in
             decorView.animate()
-                .alpha(1f)
+                .alpha(VISIBLE_ALPHA)
                 .setDuration(ANIMATION_DURATION)
                 .withEndAction {
                     // Move lifecycle to STARTED only after view is successfully added
@@ -316,7 +316,7 @@ open class CoreFloatingWindow(
             if (decorView.parent != null) {
                 // Animate fade-out
                 decorView.animate()
-                    .alpha(0f)
+                    .alpha(INVISIBLE_ALPHA)
                     .setDuration(ANIMATION_DURATION)
                     .withEndAction {
                         // Remove view after animation
@@ -464,5 +464,15 @@ open class CoreFloatingWindow(
          * Duration in milliseconds for fade in/out animations when showing/hiding the window.
          */
         private const val ANIMATION_DURATION = 300L
+
+        /**
+         * Alpha value representing fully invisible state.
+         */
+        private const val INVISIBLE_ALPHA = 0f
+
+        /**
+         * Alpha value representing fully visible state.
+         */
+        private const val VISIBLE_ALPHA = 1f
     }
 }
