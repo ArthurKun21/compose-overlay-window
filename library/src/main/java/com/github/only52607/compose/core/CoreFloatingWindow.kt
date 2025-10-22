@@ -46,7 +46,7 @@ open class CoreFloatingWindow(
     // Use a SupervisorJob so failure of one child doesn't cause others to fail
     // Use a custom scope tied to the window's lifecycle for managing window-specific coroutines
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.e(tag, "Coroutine Exception: ${throwable.localizedMessage}", throwable)
+        Log.e(tag, "Coroutine Exception: ${throwable.message}", throwable)
     }
     internal val coroutineContext = AndroidUiDispatcher.CurrentThread
     internal val lifecycleCoroutineScope = CoroutineScope(
@@ -189,7 +189,7 @@ open class CoreFloatingWindow(
         get() = display.metrics.heightPixels - decorView.measuredHeight
 
     /**
-     * Shows the floating window.
+     * Shows the floating window with a fade-in animation.
      *
      * Adds the [decorView] to the [WindowManager] using the configured [windowParams].
      * Moves the lifecycle state to STARTED.
@@ -227,14 +227,23 @@ open class CoreFloatingWindow(
                 Log.w(tag, "DecorView already has a parent. Removing it.")
                 (decorView.parent as? ViewGroup)?.removeView(decorView)
             }
+            // Set initial alpha to 0 for fade-in animation
+            decorView.alpha = INVISIBLE_ALPHA
             windowManager.addView(decorView, windowParams)
-            // Move lifecycle to STARTED only after view is successfully added
-            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+            // Animate fade-in
+            decorView.animate()
+                .alpha(VISIBLE_ALPHA)
+                .setDuration(ANIMATION_DURATION)
+                .withEndAction {
+                    // Move lifecycle to STARTED only after view is successfully added
+                    lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+                }
+                .start()
             // Update state last
             _isShowing.update { true }
         } catch (e: Exception) {
             // Catch potential exceptions from WindowManager (e.g., security, bad token)
-            Log.e(tag, "Error showing window: ${e.localizedMessage}", e)
+            Log.e(tag, "Error showing window: ${e.message}", e)
             // Reset state if adding failed
             _isShowing.update { false }
         }
@@ -279,13 +288,13 @@ open class CoreFloatingWindow(
             try {
                 windowManager.updateViewLayout(decorView, windowParams)
             } catch (e: Exception) {
-                Log.e(tag, "Error updating window layout: ${e.localizedMessage}", e)
+                Log.e(tag, "Error updating window layout: ${e.message}", e)
             }
         }
     }
 
     /**
-     * Hides the floating window.
+     * Hides the floating window with fade-out animation.
      *
      * Removes the [decorView] from the [WindowManager].
      * Moves the lifecycle state to STOPPED.
@@ -303,15 +312,27 @@ open class CoreFloatingWindow(
 
         _isShowing.update { false }
         try {
-            // Check if view is still attached before removing
+            // Check if view is still attached before animating removal
             if (decorView.parent != null) {
-                windowManager.removeViewImmediate(decorView) // Use immediate for synchronous removal
+                // Animate fade-out
+                decorView.animate()
+                    .alpha(INVISIBLE_ALPHA)
+                    .setDuration(ANIMATION_DURATION)
+                    .withEndAction {
+                        // Remove view after animation
+                        try {
+                            windowManager.removeViewImmediate(decorView)
+                        } catch (e: Exception) {
+                            Log.e(tag, "Error removing window: ${e.message}", e)
+                        }
+                    }
+                    .start()
             } else {
                 Log.w(tag, "Hide called but DecorView has no parent.")
             }
         } catch (e: Exception) {
             // Catch potential exceptions (e.g., view not attached)
-            Log.e(tag, "Error hiding window: ${e.localizedMessage}", e)
+            Log.e(tag, "Error hiding window: ${e.message}", e)
         } finally {
             // Move lifecycle to STOPPED regardless of removal success,
             // as the intention is to stop interaction.
@@ -397,7 +418,7 @@ open class CoreFloatingWindow(
             } catch (e: Exception) {
                 Log.e(
                     tag,
-                    "Error hiding window during destruction: ${e.localizedMessage}",
+                    "Error hiding window during destruction: ${e.message}",
                     e,
                 )
             }
@@ -436,5 +457,22 @@ open class CoreFloatingWindow(
         // savedStateRegistryController is tied to the lifecycle/owner, should be handled.
 
         Log.d(tag, "FloatingWindow destroyed successfully.")
+    }
+
+    companion object {
+        /**
+         * Duration in milliseconds for fade in/out animations when showing/hiding the window.
+         */
+        private const val ANIMATION_DURATION = 300L
+
+        /**
+         * Alpha value representing fully invisible state.
+         */
+        private const val INVISIBLE_ALPHA = 0f
+
+        /**
+         * Alpha value representing fully visible state.
+         */
+        private const val VISIBLE_ALPHA = 1f
     }
 }
