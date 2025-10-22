@@ -243,7 +243,7 @@ open class CoreFloatingWindow(
             _isShowing.update { true }
         } catch (e: Exception) {
             // Catch potential exceptions from WindowManager (e.g., security, bad token)
-            Log.e(tag, "Error showing window: ${e.localizedMessage}", e)
+            Log.e(tag, "Error showing window: ${e.message}", e)
             // Reset state if adding failed
             _isShowing.update { false }
         }
@@ -323,7 +323,7 @@ open class CoreFloatingWindow(
                         try {
                             windowManager.removeViewImmediate(decorView)
                         } catch (e: Exception) {
-                            Log.e(tag, "Error removing window: ${e.localizedMessage}", e)
+                            Log.e(tag, "Error removing window: ${e.message}", e)
                         }
                     }
                     .start()
