@@ -46,6 +46,7 @@ fun ComposeFloatingWindowTheme(
         }
 
         darkTheme -> DarkColorScheme
+
         else -> LightColorScheme
     }
 
