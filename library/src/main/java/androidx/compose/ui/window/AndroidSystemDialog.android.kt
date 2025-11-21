@@ -289,10 +289,8 @@ private class SystemDialogWrapper(
     density: Density,
     dialogId: String,
 ) : ComponentDialog(
-    /**
-     * [Window.setClipToOutline] is only available from 22+, but the style attribute exists on 21.
-     * So use a wrapped context that sets this attribute for compatibility back to 21.
-     */
+    // [Window.setClipToOutline] is only available from 22+, but the style attribute exists on 21.
+    // So use a wrapped context that sets this attribute for compatibility back to 21.
     ContextThemeWrapper(
         composeView.context,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S || properties.decorFitsSystemWindows) {
