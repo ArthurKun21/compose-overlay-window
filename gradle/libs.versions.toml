@@ -11,7 +11,7 @@ appcompat = "1.7.1"
 lifecycle = "2.10.0"
 activity-compose = "1.12.2"
 
-compose-bom = "2025.12.00"
+compose-bom = "2025.12.01"
 
 junit = "4.13.2"
 
