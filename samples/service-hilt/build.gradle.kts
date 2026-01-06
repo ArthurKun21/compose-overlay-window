@@ -60,6 +60,9 @@ dependencies {
 
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.compiler)
+    // Workaround for dagger-hilt and kotlin 2.3.0 compatibility issue
+    // https://github.com/google/dagger/issues/5001#issuecomment-3684972416
+    ksp(libs.kotlin.metadata)
 
     implementation(libs.bundles.datastore)
 }
