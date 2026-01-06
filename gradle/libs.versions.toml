@@ -66,6 +66,8 @@ datastore-preferences = { module = "androidx.datastore:datastore-preferences", v
 
 ktlint-core = { module = "com.pinterest.ktlint:ktlint-cli", version.ref = "ktlint-core" }
 
+kotlin-metadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version = "2.3.0-Beta1" }
+
 [plugins]
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 agp = { id = "com.android.application", version.ref = "agp" }

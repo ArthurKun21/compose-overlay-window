@@ -60,6 +60,7 @@ dependencies {
 
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.compiler)
+    ksp(libs.kotlin.metadata)
 
     implementation(libs.bundles.datastore)
 }
