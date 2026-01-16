@@ -69,7 +69,6 @@ ktlint-core = { module = "com.pinterest.ktlint:ktlint-cli", version.ref = "ktlin
 kotlin-metadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version = "2.3.0" }
 
 [plugins]
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 agp = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 
