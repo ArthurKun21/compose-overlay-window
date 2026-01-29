@@ -1,17 +1,12 @@
 plugins {
-    alias(libs.plugins.agp)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.compose.compiler)
+    id("android.application")
 }
 
 android {
     namespace = "io.github.arthurkun.keyboard.usage"
-    compileSdk = libs.versions.compile.sdk.get().toInt()
 
     defaultConfig {
         applicationId = "io.github.arthurkun.floating.window"
-        minSdk = libs.versions.min.sdk.get().toInt()
-        targetSdk = libs.versions.target.sdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
 
@@ -27,10 +22,6 @@ android {
             )
             signingConfig = signingConfigs.getByName("debug")
         }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
