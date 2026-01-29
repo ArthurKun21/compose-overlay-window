@@ -5,7 +5,9 @@ USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 # ---- System dependencies ----
-RUN rm -rf /var/lib/apt/lists/* \
+# Remove yarn repository to avoid GPG key errors
+RUN rm -f /etc/apt/sources.list.d/yarn.list \
+    && rm -rf /var/lib/apt/lists/* \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         curl \
