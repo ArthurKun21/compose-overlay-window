@@ -26,9 +26,6 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {

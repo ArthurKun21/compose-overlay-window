@@ -19,5 +19,9 @@ internal fun configureAndroid(commonExtension: CommonExtension) {
             sourceCompatibility = AndroidConfig.JavaVersion
             targetCompatibility = AndroidConfig.JavaVersion
         }
+
+        buildFeatures {
+            compose = true
+        }
     }
 }
