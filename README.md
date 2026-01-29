@@ -20,29 +20,21 @@ Global Floating Window Framework based on Jetpack Compose
 
 ### Import Dependencies
 
-- If the Gradle version is less than 7.0, add the Jitpack repository in the `build.gradle` of your app.
+- Add on settings.gradle.kts
 
-```groovy
-repositories {
-    maven { url 'https://jitpack.io' }
-}
-```
-
-- If the Gradle version is greater than or equal to 7.0, add it in the settings.gradle file.
-
-```groovy
+```kotlin
 dependencyResolutionManagement {
     repositories {
-        maven { url 'https://jitpack.io' }
+        maven { url = uri("https://jitpack.io") }
     }
 }
 ```
 
 - Add `compose-floating-window` Dependency
 
-```groovy
+```kotlin
 dependencies {
-    implementation "com.github.ArthurKun21:compose-overlay-window:<tag>"
+    implementation("com.github.ArthurKun21:compose-overlay-window:<tag>")
 }
 ```
 
@@ -54,7 +46,9 @@ Add to `AndroidManifest.xml`
 <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 ```
 
-### Create Floating Window and Show
+### Activity
+
+When you want to show the floating window while on the Activity, you can use the following code:
 
 ```kotlin
 val floatingWindow = ComposeFloatingWindow(applicationContext)
@@ -69,6 +63,26 @@ floatingWindow.setContent {
 }
 floatingWindow.show()
 ```
+
+### Service
+
+When you want to show the floating window while on the Service, you can use the following code:
+
+```kotlin
+val floatingWindow = ComposeServiceFloatingWindow(applicationContext)
+floatingWindow.setContent {
+    FloatingActionButton(
+        modifier = Modifier.dragFloatingWindow(),
+        onClick = {
+            Log.i("")
+        }) {
+        Icon(Icons.Filled.Call, "Call")
+    }
+}
+floatingWindow.show()
+```
+
+## Advanced Usage
 
 > See [Sample Apps](samples).
 
