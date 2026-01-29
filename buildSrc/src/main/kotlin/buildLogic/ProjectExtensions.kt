@@ -23,5 +23,11 @@ internal fun configureAndroid(commonExtension: CommonExtension) {
         buildFeatures {
             compose = true
         }
+
+        packaging {
+            resources {
+                excludes.add("/META-INF/{AL2.0,LGPL2.1}")
+            }
+        }
     }
 }
