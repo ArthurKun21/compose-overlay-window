@@ -14,8 +14,7 @@
       "extensions": [
         "GitHub.copilot",
         "oderwat.indent-rainbow",
-        "redhat.vscode-yaml",
-        "vscjava.vscode-java-pack"
+        "redhat.vscode-yaml"
       ]
     }
   },
