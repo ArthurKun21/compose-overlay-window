@@ -10,6 +10,7 @@ on:
       - '.gitignore'
       - 'renovate.json'
       - 'FUNDING.yml'
+      - '.devcontainer/**'
   workflow_dispatch:
 
 env:
