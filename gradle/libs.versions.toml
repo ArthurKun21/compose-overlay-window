@@ -3,7 +3,7 @@ compile-sdk = "36"
 target-sdk = "36"
 min-sdk = "24"
 
-agp = "8.13.2"
+agp = "9.0.0"
 kotlin = "2.3.0"
 
 android-core-ktx = "1.17.0"
@@ -11,7 +11,7 @@ appcompat = "1.7.1"
 lifecycle = "2.10.0"
 activity-compose = "1.12.2"
 
-compose-bom = "2026.01.00"
+compose-bom = "2026.01.01"
 
 junit = "4.13.2"
 
@@ -22,12 +22,12 @@ google-material = "1.13.0"
 
 leakcanary = "2.14"
 
-hilt = "2.58"
-ksp = "2.3.4"
+hilt = "2.59"
+ksp = "2.3.5"
 
 datastore = "1.2.0"
 
-spotless = "8.1.0"
+spotless = "8.2.1"
 ktlint-core = "1.8.0"
 
 [libraries]
@@ -66,7 +66,15 @@ datastore-preferences = { module = "androidx.datastore:datastore-preferences", v
 
 ktlint-core = { module = "com.pinterest.ktlint:ktlint-cli", version.ref = "ktlint-core" }
 
-kotlin-metadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version = "2.3.0" }
+#
+# Gradle libraries
+#
+
+androidx-gradle = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+compose-compiler-gradle = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
+
+spotless-gradle = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
 
 [plugins]
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
