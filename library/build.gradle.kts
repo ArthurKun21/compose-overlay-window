@@ -1,21 +1,11 @@
 plugins {
-    id("com.android.library")
-    kotlin("android")
     `maven-publish`
-    alias(libs.plugins.compose.compiler)
+    id("library")
 }
 
 android {
     namespace = "com.github.only52607.compose.window"
-    compileSdk = libs.versions.compile.sdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.min.sdk.get().toInt()
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
+    
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -24,10 +14,6 @@ android {
                 "proguard-rules.pro",
             )
         }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
