@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.github.only52607.compose.window"
-    
+
     buildTypes {
         release {
             isMinifyEnabled = false
