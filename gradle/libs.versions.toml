@@ -25,6 +25,8 @@ leakcanary = "2.14"
 hilt = "2.59.1"
 ksp = "2.3.5"
 
+metro = "0.10.2"
+
 datastore = "1.2.0"
 
 spotless = "8.2.1"
@@ -61,6 +63,8 @@ leak-canary = { module = "com.squareup.leakcanary:leakcanary-android", version.r
 dagger-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 dagger-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 
+metro-runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
+
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 
@@ -86,6 +90,7 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
 
 [bundles]
 datastore = ["datastore", "datastore-preferences"]

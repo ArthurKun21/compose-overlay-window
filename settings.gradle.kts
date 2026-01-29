@@ -33,5 +33,6 @@ rootProject.name = "ComposeFloatingWindow"
 include(":library")
 include(":samples:app-activity")
 include(":samples:service-hilt")
+include(":samples:service-metro")
 include(":samples:fullscreen-dialog")
 include(":samples:keyboard-usage")
