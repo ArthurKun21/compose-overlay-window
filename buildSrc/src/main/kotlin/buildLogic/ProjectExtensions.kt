@@ -7,7 +7,7 @@ import org.gradle.kotlin.dsl.the
 
 val Project.libs get() = the<LibrariesForLibs>()
 
-internal fun configureAndroid(commonExtension: CommonExtension) {
+internal fun Project.configureAndroid(commonExtension: CommonExtension) {
     commonExtension.apply {
         compileSdk = AndroidConfig.COMPILE_SDK
 
@@ -18,16 +18,6 @@ internal fun configureAndroid(commonExtension: CommonExtension) {
         compileOptions.apply {
             sourceCompatibility = AndroidConfig.JavaVersion
             targetCompatibility = AndroidConfig.JavaVersion
-        }
-
-        buildFeatures {
-            compose = true
-        }
-
-        packaging {
-            resources {
-                excludes.add("/META-INF/{AL2.0,LGPL2.1}")
-            }
         }
     }
 }

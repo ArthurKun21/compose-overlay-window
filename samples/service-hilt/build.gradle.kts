@@ -30,7 +30,7 @@ android {
 
 dependencies {
     implementation(project(":library"))
-    
+
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 

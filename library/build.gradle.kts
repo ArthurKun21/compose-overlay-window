@@ -40,14 +40,13 @@ dependencies {
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
-    
+
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.google.material)
-    
 }
 
 publishing {

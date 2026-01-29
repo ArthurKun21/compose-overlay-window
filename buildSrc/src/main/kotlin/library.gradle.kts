@@ -12,4 +12,14 @@ android {
         lint.targetSdk = AndroidConfig.TARGET_SDK
     }
     configureAndroid(this)
+
+    buildFeatures {
+        compose = true
+    }
+
+    packaging {
+        resources {
+            excludes.add("/META-INF/{AL2.0,LGPL2.1}")
+        }
+    }
 }
