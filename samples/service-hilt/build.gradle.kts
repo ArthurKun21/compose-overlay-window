@@ -1,6 +1,7 @@
 plugins {
     id("android.application")
     id("android.tests")
+    id("sample.common.deps")
 
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
@@ -29,14 +30,6 @@ android {
 
 dependencies {
     implementation(project(":library"))
-
-    implementation(libs.appcompat)
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.activity.compose)
-    implementation(platform(libs.compose.bom))
-    implementation(libs.bundles.compose.ui)
     
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
