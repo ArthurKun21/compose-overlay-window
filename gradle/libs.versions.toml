@@ -22,7 +22,7 @@ google-material = "1.13.0"
 
 leakcanary = "2.14"
 
-hilt = "2.59"
+hilt = "2.59.1"
 ksp = "2.3.5"
 
 datastore = "1.2.0"
