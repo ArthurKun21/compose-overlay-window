@@ -50,7 +50,6 @@ public class ComposeServiceFloatingWindow(
     override val windowParams: WindowManager.LayoutParams = defaultLayoutParams(context),
 ) : CoreFloatingWindow(
     context = context,
-    windowParams = windowParams,
     tag = SERVICE_TAG,
 ) {
     /**

@@ -51,7 +51,6 @@ public class ComposeFloatingWindow(
     override val windowParams: WindowManager.LayoutParams = defaultLayoutParams(context),
 ) : CoreFloatingWindow(
     context = context,
-    windowParams = windowParams,
     tag = TAG,
 ),
     HasDefaultViewModelProviderFactory {

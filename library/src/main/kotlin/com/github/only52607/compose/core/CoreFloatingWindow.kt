@@ -31,13 +31,14 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.cancellation.CancellationException
 
-internal open class CoreFloatingWindow(
+internal abstract class CoreFloatingWindow(
     private val context: Context,
-    internal open val windowParams: WindowManager.LayoutParams,
     private val tag: String = "CoreFloatingWindow",
 ) : SavedStateRegistryOwner,
     ViewModelStoreOwner,
     AutoCloseable {
+
+    abstract val windowParams: WindowManager.LayoutParams
 
     // --- Lifecycle, ViewModel, SavedState ---
 
