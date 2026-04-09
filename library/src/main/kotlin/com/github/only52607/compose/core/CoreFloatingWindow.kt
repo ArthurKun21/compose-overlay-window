@@ -21,7 +21,6 @@ import androidx.savedstate.SavedStateRegistryOwner
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -222,19 +221,21 @@ public abstract class CoreFloatingWindow internal constructor(
      *
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
      */
-    public fun update(): Job = lifecycleCoroutineScope.launch {
-        checkDestroyed()
+    public fun update() {
+        lifecycleCoroutineScope.launch {
+            checkDestroyed()
 
-        if (!_isShowing.value) {
-            Log.w(tag, "Update called but window is not showing.")
-            return@launch
-        }
-        Log.d(tag, "Updating window layout.")
-        mutex.withLock {
-            try {
-                windowManager.updateViewLayout(decorView, windowParams)
-            } catch (e: Exception) {
-                Log.e(tag, "Error updating window layout: ${e.message}", e)
+            if (!_isShowing.value) {
+                Log.w(tag, "Update called but window is not showing.")
+                return@launch
+            }
+            Log.d(tag, "Updating window layout.")
+            mutex.withLock {
+                try {
+                    windowManager.updateViewLayout(decorView, windowParams)
+                } catch (e: Exception) {
+                    Log.e(tag, "Error updating window layout: ${e.message}", e)
+                }
             }
         }
     }
