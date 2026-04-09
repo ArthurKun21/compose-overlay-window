@@ -16,7 +16,7 @@ import android.view.WindowManager
  * @param context The context used to access display information and resources.
  * @param windowManager The WindowManager instance used to retrieve window metrics.
  */
-class DisplayHelper(
+public class DisplayHelper(
     private val context: Context,
     private val windowManager: WindowManager,
 ) {
@@ -33,7 +33,7 @@ class DisplayHelper(
      *
      * @return [DisplayMetrics] containing width, height, density, and densityDpi information.
      */
-    val metrics: DisplayMetrics
+    public val metrics: DisplayMetrics
         get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val bounds = windowManager.currentWindowMetrics.bounds
             val contextMetrics = context.resources.displayMetrics

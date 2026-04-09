@@ -84,15 +84,15 @@ import kotlin.uuid.Uuid
  * set to `false` for Android [R][Build.VERSION_CODES.R] and earlier.
  */
 @Immutable
-class SystemDialogProperties(
-    val dismissOnBackPress: Boolean = true,
-    val dismissOnClickOutside: Boolean = true,
-    val securePolicy: SecureFlagPolicy = SecureFlagPolicy.Inherit,
-    val usePlatformDefaultWidth: Boolean = true,
-    val decorFitsSystemWindows: Boolean = true,
+public class SystemDialogProperties(
+    public val dismissOnBackPress: Boolean = true,
+    public val dismissOnClickOutside: Boolean = true,
+    public val securePolicy: SecureFlagPolicy = SecureFlagPolicy.Inherit,
+    public val usePlatformDefaultWidth: Boolean = true,
+    public val decorFitsSystemWindows: Boolean = true,
 ) {
 
-    constructor(
+    public constructor(
         dismissOnBackPress: Boolean = true,
         dismissOnClickOutside: Boolean = true,
         securePolicy: SecureFlagPolicy = SecureFlagPolicy.Inherit,
@@ -147,7 +147,7 @@ class SystemDialogProperties(
  * @param content The content to be displayed inside the dialog.
  */
 @Composable
-fun SystemDialog(
+public fun SystemDialog(
     onDismissRequest: () -> Unit,
     properties: SystemDialogProperties = SystemDialogProperties(),
     content: @Composable () -> Unit,
@@ -208,8 +208,8 @@ fun SystemDialog(
  *
  * Implemented by dialog's root layout.
  */
-interface SystemDialogWindowProvider {
-    val window: Window
+public interface SystemDialogWindowProvider {
+    public val window: Window
 }
 
 @Suppress("ViewConstructor")

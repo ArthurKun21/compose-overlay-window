@@ -31,9 +31,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.cancellation.CancellationException
 
-open class CoreFloatingWindow(
+internal open class CoreFloatingWindow(
     private val context: Context,
-    open val windowParams: WindowManager.LayoutParams,
+    internal open val windowParams: WindowManager.LayoutParams,
     private val tag: String = "CoreFloatingWindow",
 ) : SavedStateRegistryOwner,
     ViewModelStoreOwner,

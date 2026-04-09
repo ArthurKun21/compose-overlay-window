@@ -76,7 +76,7 @@ import androidx.compose.ui.window.SystemDialogProperties
  * @param properties typically platform specific properties to further configure the dialog.
  */
 @Composable
-fun SystemAlertDialog(
+public fun SystemAlertDialog(
     onDismissRequest: () -> Unit,
     confirmButton: @Composable () -> Unit,
     modifier: Modifier = Modifier,

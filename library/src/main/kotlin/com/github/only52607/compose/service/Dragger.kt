@@ -29,7 +29,7 @@ import com.github.only52607.compose.core.dragCoreFloatingWindow
  * @return A [Modifier] that enables drag functionality for the floating window.
  */
 @Composable
-fun Modifier.dragServiceFloatingWindow(
+public fun Modifier.dragServiceFloatingWindow(
     onDragStart: (Offset) -> Unit = { },
     onDragEnd: () -> Unit = { },
     onDragCancel: () -> Unit = { },

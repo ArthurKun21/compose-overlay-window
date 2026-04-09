@@ -46,7 +46,7 @@ import kotlin.coroutines.cancellation.CancellationException
  * @param windowParams The layout parameters for the floating window. Defaults are provided
  *                     by [ComposeFloatingWindow.defaultLayoutParams].
  */
-class ComposeFloatingWindow(
+public class ComposeFloatingWindow(
     private val context: Context,
     override val windowParams: WindowManager.LayoutParams = defaultLayoutParams(context),
 ) : CoreFloatingWindow(
@@ -74,7 +74,7 @@ class ComposeFloatingWindow(
      * @param content The composable function defining the UI of the floating window.
      * @throws IllegalStateException if called after [checkDestroyed] or [close] has been invoked.
      */
-    fun setContent(content: @Composable () -> Unit) {
+    public fun setContent(content: @Composable () -> Unit) {
         checkDestroyed()
         Log.d(TAG, "Setting content.")
 

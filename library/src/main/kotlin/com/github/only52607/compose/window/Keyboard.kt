@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import com.github.only52607.compose.core.rememberCoreFloatingWindowInteractionSource
 
 @Composable
-fun rememberFloatingWindowInteractionSource(): MutableInteractionSource {
+public fun rememberFloatingWindowInteractionSource(): MutableInteractionSource {
     val floatingWindow = LocalFloatingWindow.current
     val interactionSource = rememberCoreFloatingWindowInteractionSource(floatingWindow)
 
