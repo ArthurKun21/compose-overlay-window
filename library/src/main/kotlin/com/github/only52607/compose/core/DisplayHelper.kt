@@ -16,7 +16,7 @@ import android.view.WindowManager
  * @param context The context used to access display information and resources.
  * @param windowManager The WindowManager instance used to retrieve window metrics.
  */
-public class DisplayHelper(
+public class DisplayHelper internal constructor(
     private val context: Context,
     private val windowManager: WindowManager,
 ) {
