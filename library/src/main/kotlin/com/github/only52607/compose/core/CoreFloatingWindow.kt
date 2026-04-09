@@ -31,13 +31,14 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.cancellation.CancellationException
 
-open class CoreFloatingWindow(
+public abstract class CoreFloatingWindow internal constructor(
     private val context: Context,
-    open val windowParams: WindowManager.LayoutParams,
     private val tag: String = "CoreFloatingWindow",
 ) : SavedStateRegistryOwner,
     ViewModelStoreOwner,
     AutoCloseable {
+
+    public abstract val windowParams: WindowManager.LayoutParams
 
     // --- Lifecycle, ViewModel, SavedState ---
 
@@ -53,15 +54,15 @@ open class CoreFloatingWindow(
     )
     private val mutex = Mutex()
 
-    override val viewModelStore: ViewModelStore = ViewModelStore()
+    public override val viewModelStore: ViewModelStore = ViewModelStore()
 
     private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
-    override val lifecycle: Lifecycle
+    public override val lifecycle: Lifecycle
         get() = lifecycleRegistry
 
     private val savedStateRegistryController: SavedStateRegistryController =
         SavedStateRegistryController.create(this)
-    override val savedStateRegistry: SavedStateRegistry
+    public override val savedStateRegistry: SavedStateRegistry
         get() = savedStateRegistryController.savedStateRegistry
 
     // --- Window State ---
@@ -72,7 +73,7 @@ open class CoreFloatingWindow(
      * A [StateFlow] indicating whether the floating window is currently shown (`true`) or hidden (`false`).
      * Does not reflect the destroyed state. Check [isDestroyed] for that.
      */
-    val isShowing: StateFlow<Boolean>
+    public val isShowing: StateFlow<Boolean>
         get() = _isShowing.asStateFlow()
 
     private val _isDestroyed = MutableStateFlow(false)
@@ -81,14 +82,14 @@ open class CoreFloatingWindow(
      * A [StateFlow] indicating whether the floating window has been destroyed (`true`).
      * Once destroyed, the instance cannot be reused. Create a new instance if needed.
      */
-    val isDestroyed: StateFlow<Boolean>
+    public val isDestroyed: StateFlow<Boolean>
         get() = _isDestroyed.asStateFlow()
 
     /**
      * The root view container for the floating window's content.
      * This is the view added to the WindowManager.
      */
-    var decorView: ViewGroup = FrameLayout(context)
+    public var decorView: ViewGroup = FrameLayout(context)
         .apply {
             // Important: Prevent clipping so shadows or elements outside bounds can be drawn
             clipChildren = false
@@ -104,7 +105,7 @@ open class CoreFloatingWindow(
      * Used internally to calculate maximum coordinates and display dimensions
      * for proper window positioning and bounds checking.
      */
-    val display = DisplayHelper(context, windowManager)
+    public val display: DisplayHelper = DisplayHelper(context, windowManager)
     internal var composeView: ComposeView? = null // Hold a direct reference
     internal var parentComposition: Recomposer? = null // Hold reference for disposal
 
@@ -117,7 +118,7 @@ open class CoreFloatingWindow(
      *
      * @return The maximum X coordinate in pixels, or 0 if the window hasn't been measured yet.
      */
-    val maxXCoordinate
+    public val maxXCoordinate: Int
         get() = display.metrics.widthPixels - decorView.measuredWidth
 
     /**
@@ -129,7 +130,7 @@ open class CoreFloatingWindow(
      *
      * @return The maximum Y coordinate in pixels, or 0 if the window hasn't been measured yet.
      */
-    val maxYCoordinate
+    public val maxYCoordinate: Int
         get() = display.metrics.heightPixels - decorView.measuredHeight
 
     /**
@@ -142,7 +143,7 @@ open class CoreFloatingWindow(
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
      * @throws SecurityException if the `SYSTEM_ALERT_WINDOW` permission is not granted (logged as warning).
      */
-    fun show() {
+    public fun show() {
         checkDestroyed()
 
         require(composeView != null) {
@@ -202,7 +203,7 @@ open class CoreFloatingWindow(
      * @param left The new X coordinate (left position) for the window.
      * @param top The new Y coordinate (top position) for the window.
      */
-    fun updateCoordinate(left: Int, top: Int) {
+    public fun updateCoordinate(left: Int, top: Int) {
         windowParams.x = left
         windowParams.y = top
 
@@ -220,19 +221,21 @@ open class CoreFloatingWindow(
      *
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
      */
-    fun update() = lifecycleCoroutineScope.launch {
-        checkDestroyed()
+    public fun update() {
+        lifecycleCoroutineScope.launch {
+            checkDestroyed()
 
-        if (!_isShowing.value) {
-            Log.w(tag, "Update called but window is not showing.")
-            return@launch
-        }
-        Log.d(tag, "Updating window layout.")
-        mutex.withLock {
-            try {
-                windowManager.updateViewLayout(decorView, windowParams)
-            } catch (e: Exception) {
-                Log.e(tag, "Error updating window layout: ${e.message}", e)
+            if (!_isShowing.value) {
+                Log.w(tag, "Update called but window is not showing.")
+                return@launch
+            }
+            Log.d(tag, "Updating window layout.")
+            mutex.withLock {
+                try {
+                    windowManager.updateViewLayout(decorView, windowParams)
+                } catch (e: Exception) {
+                    Log.e(tag, "Error updating window layout: ${e.message}", e)
+                }
             }
         }
     }
@@ -245,7 +248,7 @@ open class CoreFloatingWindow(
      *
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
      */
-    fun hide() {
+    public fun hide() {
         checkDestroyed()
 
         if (!_isShowing.value) {
@@ -294,7 +297,7 @@ open class CoreFloatingWindow(
      * @return `true` if the overlay permission is granted, `false` otherwise.
      * @see requestOverlayPermission for requesting the permission if not available.
      */
-    fun isAvailable(): Boolean = Settings.canDrawOverlays(context)
+    public fun isAvailable(): Boolean = Settings.canDrawOverlays(context)
 
     init {
         // Warn if non-application context is used to prevent memory leaks
@@ -348,7 +351,7 @@ open class CoreFloatingWindow(
      * **Once destroyed, this instance cannot be reused.** Create a new `FloatingWindow`
      * instance if you need to show a floating window again.
      */
-    override fun close() {
+    public override fun close() {
         if (_isDestroyed.value) {
             Log.w(tag, "Destroy called but window is already destroyed.")
             return
@@ -403,7 +406,7 @@ open class CoreFloatingWindow(
         Log.d(tag, "FloatingWindow destroyed successfully.")
     }
 
-    companion object {
+    private companion object {
         /**
          * Duration in milliseconds for fade in/out animations when showing/hiding the window.
          */

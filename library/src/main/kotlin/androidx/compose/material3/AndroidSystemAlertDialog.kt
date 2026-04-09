@@ -15,6 +15,7 @@
  */
 
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+
 package androidx.compose.material3
 
 import androidx.compose.material3.internal.Strings
@@ -76,7 +77,7 @@ import androidx.compose.ui.window.SystemDialogProperties
  * @param properties typically platform specific properties to further configure the dialog.
  */
 @Composable
-fun SystemAlertDialog(
+public fun SystemAlertDialog(
     onDismissRequest: () -> Unit,
     confirmButton: @Composable () -> Unit,
     modifier: Modifier = Modifier,
@@ -136,5 +137,6 @@ fun SystemAlertDialog(
 internal fun ColorSchemeKeyTokens.toColor(): Color {
     return MaterialTheme.colorScheme.fromToken(this)
 }
+
 private val ButtonsMainAxisSpacing = 8.dp
 private val ButtonsCrossAxisSpacing = 12.dp

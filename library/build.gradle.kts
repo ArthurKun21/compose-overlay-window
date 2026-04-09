@@ -27,6 +27,8 @@ android {
 version = 1.0
 
 kotlin {
+    explicitApi()
+
     compilerOptions {
         freeCompilerArgs.addAll(
             "-opt-in=kotlin.uuid.ExperimentalUuidApi",

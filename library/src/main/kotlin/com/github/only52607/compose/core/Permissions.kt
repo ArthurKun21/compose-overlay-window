@@ -15,7 +15,7 @@ import androidx.core.net.toUri
  * @param context The context used to start the permission request activity.
  *                Should typically be an Activity context to ensure proper navigation.
  */
-fun requestOverlayPermission(context: Context) {
+public fun requestOverlayPermission(context: Context) {
     val intent = Intent(
         Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
         "package:${context.packageName}".toUri(),
@@ -33,6 +33,6 @@ fun requestOverlayPermission(context: Context) {
  * @param context The context used to check the permission status.
  * @return `true` if the overlay permission is granted, `false` otherwise.
  */
-fun checkOverlayPermission(context: Context): Boolean {
+public fun checkOverlayPermission(context: Context): Boolean {
     return Settings.canDrawOverlays(context)
 }

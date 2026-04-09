@@ -12,7 +12,7 @@ import androidx.compose.runtime.compositionLocalOf
  *
  * @throws IllegalStateException if accessed outside of a ComposeFloatingWindow context
  */
-val LocalFloatingWindow: ProvidableCompositionLocal<ComposeFloatingWindow> = compositionLocalOf {
+public val LocalFloatingWindow: ProvidableCompositionLocal<ComposeFloatingWindow> = compositionLocalOf {
     noLocalProvidedFor("LocalFloatingWindow")
 }
 
