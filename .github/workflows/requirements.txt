@@ -1,6 +1,0 @@
-zensical
-pymdown-extensions
-
-# Imaging dependencies for Zensical social cards
-cairosvg==2.9.0
-pillow==12.2.0

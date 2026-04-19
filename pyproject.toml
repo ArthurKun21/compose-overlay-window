@@ -1,0 +1,11 @@
+[project]
+name = "compose-overlay-window"
+version = "0.1.0"
+description = "Github Pages site for compose-overlay-window project"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "cairosvg==2.9.0",
+    "pillow==12.2.0",
+    "zensical==0.0.33",
+]

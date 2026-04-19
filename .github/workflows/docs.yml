@@ -34,13 +34,14 @@ jobs:
           python-version: '3.13'
       - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
 
-      - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
         with:
-          key: zensical-${{ env.cache_id }}
-          path: ~/.cache
-          restore-keys: |
-            zensical-
-      - run: pip install -r .github/workflows/requirements.txt
+          enable-cache: true
+          activate-environment: true
+      
+      - name: Install dependencies
+        run: |
+          uv sync --no-dev
 
       - run: zensical build --clean --config-file mkdocs.yaml
 

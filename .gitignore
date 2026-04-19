@@ -16,3 +16,4 @@ local.properties
 # Mkdocs-material/zensical
 site
 .venv
+uv.lock
