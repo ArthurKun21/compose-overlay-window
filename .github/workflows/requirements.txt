@@ -1,9 +1,6 @@
-mkdocs-material
-mkdocs-git-revision-date-localized-plugin
-mkdocs-awesome-nav
+zensical
 pymdown-extensions
 
-# Imaging dependencies for mkdocs-material social plugin
-# https://squidfunk.github.io/mkdocs-material/plugins/requirements/image-processing/
+# Imaging dependencies for Zensical social cards
 cairosvg==2.8.2
 pillow==11.3.0
