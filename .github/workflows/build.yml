@@ -3,20 +3,21 @@ name: build app
 on:
   pull_request:
     paths-ignore:
-      - .editorconfig
-      - .gitignore
+      - '.devcontainer/**'
+      - '.github/workflows/**'
+      - 'docs/**'
       - '.idea/**'
       - 'preview/**'
+      - '.editorconfig'
+      - '.gitignore'
+      - 'LICENSE'
       - 'jitpack.yml'
       - '**/*.md'
       - 'renovate.json'
       - 'FUNDING.yml'
-      - '.devcontainer/**'
-      - .github/workflows/**
-      - 'docs/**'
       - 'mkdocs.yaml'
-      - pyproject.toml
-      - .python-version
+      - 'pyproject.toml'
+      - '.python-version'
   workflow_dispatch:
 
 env:
