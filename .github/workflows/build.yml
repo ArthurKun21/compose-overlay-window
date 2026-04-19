@@ -3,11 +3,12 @@ name: build app
 on:
   pull_request:
     paths-ignore:
+      - .editorconfig
+      - .gitignore
       - '.idea/**'
       - 'preview/**'
       - 'jitpack.yml'
       - '**/*.md'
-      - '.gitignore'
       - 'renovate.json'
       - 'FUNDING.yml'
       - '.devcontainer/**'
