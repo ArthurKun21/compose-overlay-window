@@ -12,6 +12,7 @@ on:
       - 'renovate.json'
       - 'FUNDING.yml'
       - '.devcontainer/**'
+      - .github/workflows/**
       - 'docs/**'
       - 'mkdocs.yaml'
       - pyproject.toml
