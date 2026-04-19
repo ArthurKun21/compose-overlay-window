@@ -8,7 +8,8 @@ on:
       - 'docs/**'
       - mkdocs.yaml
       - '.github/workflows/docs.yml'
-      - '.github/workflows/requirements.txt'
+      - pyproject.toml
+      - .python-version
   # Manual triggers
   workflow_dispatch:
 
