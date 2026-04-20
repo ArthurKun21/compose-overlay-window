@@ -14,12 +14,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven(url = "https://jitpack.io")
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
 dependencies {
-    implementation("com.github.only52607:compose-floating-window:<version>")
+    implementation("com.github.ArthurKun21:compose-overlay-window:<tag>")
 }
 ```
 
