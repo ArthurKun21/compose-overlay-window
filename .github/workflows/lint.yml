@@ -12,6 +12,8 @@ on:
       - '!.github/workflows/**'
       - 'renovate.json'
       - '.devcontainer/**'
+      - 'docs/**'
+      - 'mkdocs.yaml'
 
 env:
   JAVA_VERSION: 17
