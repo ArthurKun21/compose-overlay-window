@@ -29,6 +29,7 @@ theme:
     - navigation.sections
     - navigation.expand
     - navigation.path
+    - navigation.tracking
     - toc.follow
     - toc.integrate
     - search.suggest
