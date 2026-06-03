@@ -89,7 +89,10 @@ public abstract class CoreFloatingWindow internal constructor(
      * The root view container for the floating window's content.
      * This is the view added to the WindowManager.
      */
-    public var decorView: ViewGroup = FrameLayout(context)
+    public var decorView: ViewGroup = FloatingWindowDecorView(
+        context = context,
+        onWindowSizeChanged = ::onDecorViewSizeChanged,
+    )
         .apply {
             // Important: Prevent clipping so shadows or elements outside bounds can be drawn
             clipChildren = false
@@ -119,7 +122,7 @@ public abstract class CoreFloatingWindow internal constructor(
      * @return The maximum X coordinate in pixels, or 0 if the window hasn't been measured yet.
      */
     public val maxXCoordinate: Int
-        get() = display.metrics.widthPixels - decorView.measuredWidth
+        get() = (display.metrics.widthPixels - decorView.measuredWidth).coerceAtLeast(0)
 
     /**
      * The maximum Y coordinate for the floating window.
@@ -131,7 +134,7 @@ public abstract class CoreFloatingWindow internal constructor(
      * @return The maximum Y coordinate in pixels, or 0 if the window hasn't been measured yet.
      */
     public val maxYCoordinate: Int
-        get() = display.metrics.heightPixels - decorView.measuredHeight
+        get() = (display.metrics.heightPixels - decorView.measuredHeight).coerceAtLeast(0)
 
     /**
      * Shows the floating window with a fade-in animation.
@@ -240,6 +243,24 @@ public abstract class CoreFloatingWindow internal constructor(
                 return@postOnAnimation
             }
             updateImmediately()
+        }
+    }
+
+    private fun onDecorViewSizeChanged() {
+        if (!_isShowing.value || _isDestroyed.value) {
+            return
+        }
+
+        // Some Android versions relayout WRAP_CONTENT overlay windows by moving the surface
+        // when the content size changes. Re-apply the stored top-start coordinates after the
+        // new size is known so expanding/collapsing Compose content does not jump on screen.
+        windowParams.x = windowParams.x.coerceIn(0, maxXCoordinate)
+        windowParams.y = windowParams.y.coerceIn(0, maxYCoordinate)
+
+        try {
+            scheduleCoordinateUpdate()
+        } catch (e: Exception) {
+            Log.w(tag, "Failed to update window after size change: ${e.message}")
         }
     }
 
@@ -455,5 +476,20 @@ public abstract class CoreFloatingWindow internal constructor(
          * Alpha value representing fully visible state.
          */
         private const val VISIBLE_ALPHA = 1f
+    }
+}
+
+private class FloatingWindowDecorView(
+    context: Context,
+    private val onWindowSizeChanged: () -> Unit,
+) : FrameLayout(context) {
+    override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
+        super.onSizeChanged(width, height, oldWidth, oldHeight)
+
+        if (oldWidth == 0 && oldHeight == 0) {
+            return
+        }
+
+        onWindowSizeChanged()
     }
 }
