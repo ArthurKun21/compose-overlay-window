@@ -2,6 +2,8 @@ package com.github.only52607.compose.core
 
 import android.app.Application
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.ViewGroup
@@ -26,9 +28,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.cancellation.CancellationException
 
 public abstract class CoreFloatingWindow internal constructor(
@@ -47,12 +46,13 @@ public abstract class CoreFloatingWindow internal constructor(
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(tag, "Coroutine Exception: ${throwable.message}", throwable)
     }
-    internal val coroutineContext = AndroidUiDispatcher.CurrentThread
+    internal val coroutineContext = AndroidUiDispatcher.Main
     internal val lifecycleCoroutineScope = CoroutineScope(
         SupervisorJob() +
             coroutineContext + coroutineExceptionHandler,
     )
-    private val mutex = Mutex()
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var coordinateUpdateScheduled = false
 
     public override val viewModelStore: ViewModelStore = ViewModelStore()
 
@@ -89,7 +89,10 @@ public abstract class CoreFloatingWindow internal constructor(
      * The root view container for the floating window's content.
      * This is the view added to the WindowManager.
      */
-    public var decorView: ViewGroup = FrameLayout(context)
+    public var decorView: ViewGroup = FloatingWindowDecorView(
+        context = context,
+        onWindowSizeChanged = ::onDecorViewSizeChanged,
+    )
         .apply {
             // Important: Prevent clipping so shadows or elements outside bounds can be drawn
             clipChildren = false
@@ -119,7 +122,7 @@ public abstract class CoreFloatingWindow internal constructor(
      * @return The maximum X coordinate in pixels, or 0 if the window hasn't been measured yet.
      */
     public val maxXCoordinate: Int
-        get() = display.metrics.widthPixels - decorView.measuredWidth
+        get() = (display.metrics.widthPixels - decorView.measuredWidth).coerceAtLeast(0)
 
     /**
      * The maximum Y coordinate for the floating window.
@@ -131,7 +134,7 @@ public abstract class CoreFloatingWindow internal constructor(
      * @return The maximum Y coordinate in pixels, or 0 if the window hasn't been measured yet.
      */
     public val maxYCoordinate: Int
-        get() = display.metrics.heightPixels - decorView.measuredHeight
+        get() = (display.metrics.heightPixels - decorView.measuredHeight).coerceAtLeast(0)
 
     /**
      * Shows the floating window with a fade-in animation.
@@ -174,15 +177,15 @@ public abstract class CoreFloatingWindow internal constructor(
             }
             // Set initial alpha to 0 for fade-in animation
             decorView.alpha = INVISIBLE_ALPHA
+            windowParams.disableSystemMoveAnimations()
             windowManager.addView(decorView, windowParams)
+            // Move lifecycle to STARTED as soon as the view is attached. Lifecycle-aware Compose
+            // state collection and the lifecycle-aware recomposer both wait for STARTED.
+            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
             // Animate fade-in
             decorView.animate()
                 .alpha(VISIBLE_ALPHA)
                 .setDuration(ANIMATION_DURATION)
-                .withEndAction {
-                    // Move lifecycle to STARTED only after view is successfully added
-                    lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
-                }
                 .start()
             // Update state last
             _isShowing.update { true }
@@ -204,14 +207,61 @@ public abstract class CoreFloatingWindow internal constructor(
      * @param top The new Y coordinate (top position) for the window.
      */
     public fun updateCoordinate(left: Int, top: Int) {
+        if (windowParams.x == left && windowParams.y == top) {
+            return
+        }
+
         windowParams.x = left
         windowParams.y = top
 
         try {
-            update()
+            scheduleCoordinateUpdate()
         } catch (e: Exception) {
             // Log but don't crash on update failures during drag
             Log.w(tag, "Failed to update window position: ${e.message}")
+        }
+    }
+
+    private fun scheduleCoordinateUpdate() {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            scheduleCoordinateUpdateOnMain()
+        } else {
+            mainHandler.post {
+                scheduleCoordinateUpdateOnMain()
+            }
+        }
+    }
+
+    private fun scheduleCoordinateUpdateOnMain() {
+        if (coordinateUpdateScheduled) {
+            return
+        }
+
+        coordinateUpdateScheduled = true
+        decorView.postOnAnimation {
+            coordinateUpdateScheduled = false
+            if (_isDestroyed.value) {
+                return@postOnAnimation
+            }
+            updateImmediately()
+        }
+    }
+
+    private fun onDecorViewSizeChanged() {
+        if (!_isShowing.value || _isDestroyed.value) {
+            return
+        }
+
+        // Some Android versions relayout WRAP_CONTENT overlay windows by moving the surface
+        // when the content size changes. Re-apply the stored top-start coordinates after the
+        // new size is known so expanding/collapsing Compose content does not jump on screen.
+        windowParams.x = windowParams.x.coerceIn(0, maxXCoordinate)
+        windowParams.y = windowParams.y.coerceIn(0, maxYCoordinate)
+
+        try {
+            scheduleCoordinateUpdate()
+        } catch (e: Exception) {
+            Log.w(tag, "Failed to update window after size change: ${e.message}")
         }
     }
 
@@ -222,21 +272,32 @@ public abstract class CoreFloatingWindow internal constructor(
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
      */
     public fun update() {
-        lifecycleCoroutineScope.launch {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            updateImmediately()
+        } else {
             checkDestroyed()
-
-            if (!_isShowing.value) {
-                Log.w(tag, "Update called but window is not showing.")
-                return@launch
-            }
-            Log.d(tag, "Updating window layout.")
-            mutex.withLock {
-                try {
-                    windowManager.updateViewLayout(decorView, windowParams)
-                } catch (e: Exception) {
-                    Log.e(tag, "Error updating window layout: ${e.message}", e)
+            mainHandler.post {
+                if (_isDestroyed.value) {
+                    return@post
                 }
+                updateImmediately()
             }
+        }
+    }
+
+    private fun updateImmediately() {
+        checkDestroyed()
+
+        if (!_isShowing.value) {
+            Log.w(tag, "Update called but window is not showing.")
+            return
+        }
+        Log.d(tag, "Updating window layout.")
+        try {
+            windowParams.disableSystemMoveAnimations()
+            windowManager.updateViewLayout(decorView, windowParams)
+        } catch (e: Exception) {
+            Log.e(tag, "Error updating window layout: ${e.message}", e)
         }
     }
 
@@ -361,7 +422,16 @@ public abstract class CoreFloatingWindow internal constructor(
         // Hide the window if showing (ensures view is removed from WindowManager)
         if (_isShowing.value) {
             try {
-                hide()
+                _isShowing.update { false }
+                decorView.animate().cancel()
+
+                if (decorView.parent != null) {
+                    windowManager.removeViewImmediate(decorView)
+                } else {
+                    Log.w(tag, "Destroy called but DecorView has no parent.")
+                }
+
+                lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
             } catch (e: Exception) {
                 Log.e(
                     tag,
@@ -421,5 +491,20 @@ public abstract class CoreFloatingWindow internal constructor(
          * Alpha value representing fully visible state.
          */
         private const val VISIBLE_ALPHA = 1f
+    }
+}
+
+private class FloatingWindowDecorView(
+    context: Context,
+    private val onWindowSizeChanged: () -> Unit,
+) : FrameLayout(context) {
+    override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
+        super.onSizeChanged(width, height, oldWidth, oldHeight)
+
+        if (oldWidth == 0 && oldHeight == 0) {
+            return
+        }
+
+        onWindowSizeChanged()
     }
 }
