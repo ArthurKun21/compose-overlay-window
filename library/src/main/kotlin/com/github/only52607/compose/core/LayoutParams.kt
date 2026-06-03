@@ -48,4 +48,31 @@ internal fun defaultLayoutParams(context: Context) = WindowManager.LayoutParams(
         }
     }
     // If context is an Activity, the default window type associated with the activity is used.
+
+    disableSystemMoveAnimations()
+}
+
+internal fun WindowManager.LayoutParams.disableSystemMoveAnimations() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        setCanPlayMoveAnimation(false)
+    } else {
+        disableSystemMoveAnimationsWithPrivateFlag()
+    }
+}
+
+private fun WindowManager.LayoutParams.disableSystemMoveAnimationsWithPrivateFlag() {
+    try {
+        val layoutParamsClass = WindowManager.LayoutParams::class.java
+        val privateFlagsField = layoutParamsClass.getField("privateFlags")
+        val noMoveAnimationFlag = layoutParamsClass
+            .getField("PRIVATE_FLAG_NO_MOVE_ANIMATION")
+            .getInt(null)
+
+        privateFlagsField.setInt(
+            this,
+            privateFlagsField.getInt(this) or noMoveAnimationFlag,
+        )
+    } catch (_: ReflectiveOperationException) {
+    } catch (_: RuntimeException) {
+    }
 }

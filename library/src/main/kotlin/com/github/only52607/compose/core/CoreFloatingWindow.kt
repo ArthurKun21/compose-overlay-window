@@ -177,6 +177,7 @@ public abstract class CoreFloatingWindow internal constructor(
             }
             // Set initial alpha to 0 for fade-in animation
             decorView.alpha = INVISIBLE_ALPHA
+            windowParams.disableSystemMoveAnimations()
             windowManager.addView(decorView, windowParams)
             // Move lifecycle to STARTED as soon as the view is attached. Lifecycle-aware Compose
             // state collection and the lifecycle-aware recomposer both wait for STARTED.
@@ -289,6 +290,7 @@ public abstract class CoreFloatingWindow internal constructor(
         }
         Log.d(tag, "Updating window layout.")
         try {
+            windowParams.disableSystemMoveAnimations()
             windowManager.updateViewLayout(decorView, windowParams)
         } catch (e: Exception) {
             Log.e(tag, "Error updating window layout: ${e.message}", e)
