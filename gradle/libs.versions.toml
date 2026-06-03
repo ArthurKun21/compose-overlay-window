@@ -27,7 +27,7 @@ ksp = "2.3.8"
 
 datastore = "1.2.1"
 
-spotless = "8.5.1"
+spotless = "8.6.0"
 ktlint-core = "1.8.0"
 
 [libraries]
