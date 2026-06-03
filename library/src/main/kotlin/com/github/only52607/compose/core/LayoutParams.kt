@@ -52,6 +52,28 @@ internal fun defaultLayoutParams(context: Context) = WindowManager.LayoutParams(
     disableSystemMoveAnimations()
 }
 
+/**
+ * Disables platform move animations for floating-window relayouts.
+ *
+ * Issue https://github.com/ArthurKun21/compose-overlay-window/issues/23 was caused by Android 13/14
+ * animating the overlay surface from an earlier position when a moved [WindowManager.LayoutParams.WRAP_CONTENT]
+ * window changed size. A drag updates [x] and [y] through [WindowManager.updateViewLayout], then a later Compose
+ * resize triggers another relayout. With move animations enabled, the system can visually interpolate the surface
+ * from the previous committed position to the current one before applying the new size, which looks like the
+ * floating window jumps back and then moves forward.
+ *
+ * Android 14 exposes this behavior as [WindowManager.LayoutParams.setCanPlayMoveAnimation], documented with the
+ * `android:windowNoMoveAnimation` attribute:
+ * https://developer.android.com/reference/android/view/WindowManager.LayoutParams#setCanPlayMoveAnimation(boolean)
+ *
+ * Android 13 has the same underlying private flag but no public API. The fallback below sets
+ * `PRIVATE_FLAG_NO_MOVE_ANIMATION` best-effort via reflection, matching the framework source flag used by the public
+ * Android 14 API. If reflection is blocked, the library keeps working and only the platform move animation workaround
+ * is skipped.
+ *
+ * This is applied before both [WindowManager.addView] and [WindowManager.updateViewLayout] so it also covers caller
+ * supplied layout params, not just [defaultLayoutParams].
+ */
 internal fun WindowManager.LayoutParams.disableSystemMoveAnimations() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
         setCanPlayMoveAnimation(false)
@@ -60,6 +82,12 @@ internal fun WindowManager.LayoutParams.disableSystemMoveAnimations() {
     }
 }
 
+/**
+ * Best-effort Android 13 compatibility path for `android:windowNoMoveAnimation` before the public setter existed.
+ *
+ * Source reference for the hidden flag:
+ * https://android.googlesource.com/platform/frameworks/base/+/android-13.0.0_r1/core/java/android/view/WindowManager.java
+ */
 private fun WindowManager.LayoutParams.disableSystemMoveAnimationsWithPrivateFlag() {
     try {
         val layoutParamsClass = WindowManager.LayoutParams::class.java
@@ -73,6 +101,10 @@ private fun WindowManager.LayoutParams.disableSystemMoveAnimationsWithPrivateFla
             privateFlagsField.getInt(this) or noMoveAnimationFlag,
         )
     } catch (_: ReflectiveOperationException) {
+        // The Android 13 fallback is best-effort: if the hidden field or flag is unavailable,
+        // keep the public floating-window behavior and only skip the no-move-animation workaround.
     } catch (_: RuntimeException) {
+        // Some OEM builds can expose the field but reject hidden/private API access at runtime.
+        // Ignore that as well so custom LayoutParams remain usable without crashing the app.
     }
 }
