@@ -275,7 +275,11 @@ public abstract class CoreFloatingWindow internal constructor(
         if (Looper.myLooper() == Looper.getMainLooper()) {
             updateImmediately()
         } else {
+            checkDestroyed()
             mainHandler.post {
+                if (_isDestroyed.value) {
+                    return@post
+                }
                 updateImmediately()
             }
         }
@@ -418,7 +422,16 @@ public abstract class CoreFloatingWindow internal constructor(
         // Hide the window if showing (ensures view is removed from WindowManager)
         if (_isShowing.value) {
             try {
-                hide()
+                _isShowing.update { false }
+                decorView.animate().cancel()
+
+                if (decorView.parent != null) {
+                    windowManager.removeViewImmediate(decorView)
+                } else {
+                    Log.w(tag, "Destroy called but DecorView has no parent.")
+                }
+
+                lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
             } catch (e: Exception) {
                 Log.e(
                     tag,

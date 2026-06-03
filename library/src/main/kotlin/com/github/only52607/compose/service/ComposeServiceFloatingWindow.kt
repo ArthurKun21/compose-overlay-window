@@ -76,7 +76,10 @@ public class ComposeServiceFloatingWindow(
 
             // ComposeView is hosted directly by WindowManager, so install a lifecycle-aware
             // recomposer instead of relying on an Activity window recomposer.
-            val recomposer = createLifecycleAwareWindowRecomposer(lifecycle = lifecycle)
+            val recomposer = createLifecycleAwareWindowRecomposer(
+                coroutineContext = this@ComposeServiceFloatingWindow.coroutineContext,
+                lifecycle = lifecycle,
+            )
             setParentCompositionContext(recomposer)
             parentComposition = recomposer // Store for later disposal
 
