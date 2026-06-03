@@ -9,16 +9,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Recomposer
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.compositionContext
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.platform.createLifecycleAwareWindowRecomposer
 import androidx.core.view.isNotEmpty
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.github.only52607.compose.core.CoreFloatingWindow
 import com.github.only52607.compose.core.defaultLayoutParams
-import com.github.only52607.compose.window.LocalFloatingWindow
-import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Manages a floating window that can display Jetpack Compose content overlaying other applications.
@@ -72,24 +70,15 @@ public class ComposeServiceFloatingWindow(
             setViewTreeLifecycleOwner(this@ComposeServiceFloatingWindow)
             setViewTreeViewModelStoreOwner(this@ComposeServiceFloatingWindow)
             setViewTreeSavedStateRegistryOwner(this@ComposeServiceFloatingWindow)
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnLifecycleDestroyed(lifecycle),
+            )
 
-            // Create a Recomposer tied to the window's lifecycle scope
-            val recomposer = Recomposer(coroutineContext)
-            compositionContext = recomposer
+            // ComposeView is hosted directly by WindowManager, so install a lifecycle-aware
+            // recomposer instead of relying on an Activity window recomposer.
+            val recomposer = createLifecycleAwareWindowRecomposer(lifecycle = lifecycle)
+            setParentCompositionContext(recomposer)
             parentComposition = recomposer // Store for later disposal
-
-            // Launch the Recomposer
-            lifecycleCoroutineScope.launch {
-                try {
-                    recomposer.runRecomposeAndApplyChanges()
-                } catch (e: CancellationException) {
-                    Log.d(SERVICE_TAG, "Coroutine scope cancelled normally: ${e.message}")
-                } catch (e: Exception) {
-                    Log.e(SERVICE_TAG, "Recomposer error", e)
-                } finally {
-                    Log.d(SERVICE_TAG, "Recomposer job finished.")
-                }
-            }
 
             // Set the actual Composable content
             setContent {

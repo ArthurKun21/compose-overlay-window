@@ -2,6 +2,8 @@ package com.github.only52607.compose.core
 
 import android.app.Application
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.ViewGroup
@@ -26,9 +28,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.cancellation.CancellationException
 
 public abstract class CoreFloatingWindow internal constructor(
@@ -52,7 +51,7 @@ public abstract class CoreFloatingWindow internal constructor(
         SupervisorJob() +
             coroutineContext + coroutineExceptionHandler,
     )
-    private val mutex = Mutex()
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     public override val viewModelStore: ViewModelStore = ViewModelStore()
 
@@ -175,14 +174,13 @@ public abstract class CoreFloatingWindow internal constructor(
             // Set initial alpha to 0 for fade-in animation
             decorView.alpha = INVISIBLE_ALPHA
             windowManager.addView(decorView, windowParams)
+            // Move lifecycle to STARTED as soon as the view is attached. Lifecycle-aware Compose
+            // state collection and the lifecycle-aware recomposer both wait for STARTED.
+            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
             // Animate fade-in
             decorView.animate()
                 .alpha(VISIBLE_ALPHA)
                 .setDuration(ANIMATION_DURATION)
-                .withEndAction {
-                    // Move lifecycle to STARTED only after view is successfully added
-                    lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
-                }
                 .start()
             // Update state last
             _isShowing.update { true }
@@ -222,21 +220,27 @@ public abstract class CoreFloatingWindow internal constructor(
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
      */
     public fun update() {
-        lifecycleCoroutineScope.launch {
-            checkDestroyed()
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            updateImmediately()
+        } else {
+            mainHandler.post {
+                updateImmediately()
+            }
+        }
+    }
 
-            if (!_isShowing.value) {
-                Log.w(tag, "Update called but window is not showing.")
-                return@launch
-            }
-            Log.d(tag, "Updating window layout.")
-            mutex.withLock {
-                try {
-                    windowManager.updateViewLayout(decorView, windowParams)
-                } catch (e: Exception) {
-                    Log.e(tag, "Error updating window layout: ${e.message}", e)
-                }
-            }
+    private fun updateImmediately() {
+        checkDestroyed()
+
+        if (!_isShowing.value) {
+            Log.w(tag, "Update called but window is not showing.")
+            return
+        }
+        Log.d(tag, "Updating window layout.")
+        try {
+            windowManager.updateViewLayout(decorView, windowParams)
+        } catch (e: Exception) {
+            Log.e(tag, "Error updating window layout: ${e.message}", e)
         }
     }
 
