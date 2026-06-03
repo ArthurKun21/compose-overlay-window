@@ -3,14 +3,5 @@
   "extends": [
     "config:recommended"
   ],
-  "packageRules": [
-    {
-      "groupName": "kotlin",
-      "matchPackageNames": [
-        "/^org.jetbrains.kotlin/",
-        "/^com.google.devtools.ksp/",
-        "/^androidx.compose.compiler/"
-      ]
-    }
-  ]
+  "semanticCommits": "disabled"
 }
