@@ -46,12 +46,13 @@ public abstract class CoreFloatingWindow internal constructor(
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(tag, "Coroutine Exception: ${throwable.message}", throwable)
     }
-    internal val coroutineContext = AndroidUiDispatcher.CurrentThread
+    internal val coroutineContext = AndroidUiDispatcher.Main
     internal val lifecycleCoroutineScope = CoroutineScope(
         SupervisorJob() +
             coroutineContext + coroutineExceptionHandler,
     )
     private val mainHandler = Handler(Looper.getMainLooper())
+    private var coordinateUpdateScheduled = false
 
     public override val viewModelStore: ViewModelStore = ViewModelStore()
 
@@ -202,14 +203,43 @@ public abstract class CoreFloatingWindow internal constructor(
      * @param top The new Y coordinate (top position) for the window.
      */
     public fun updateCoordinate(left: Int, top: Int) {
+        if (windowParams.x == left && windowParams.y == top) {
+            return
+        }
+
         windowParams.x = left
         windowParams.y = top
 
         try {
-            update()
+            scheduleCoordinateUpdate()
         } catch (e: Exception) {
             // Log but don't crash on update failures during drag
             Log.w(tag, "Failed to update window position: ${e.message}")
+        }
+    }
+
+    private fun scheduleCoordinateUpdate() {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            scheduleCoordinateUpdateOnMain()
+        } else {
+            mainHandler.post {
+                scheduleCoordinateUpdateOnMain()
+            }
+        }
+    }
+
+    private fun scheduleCoordinateUpdateOnMain() {
+        if (coordinateUpdateScheduled) {
+            return
+        }
+
+        coordinateUpdateScheduled = true
+        decorView.postOnAnimation {
+            coordinateUpdateScheduled = false
+            if (_isDestroyed.value) {
+                return@postOnAnimation
+            }
+            updateImmediately()
         }
     }
 
