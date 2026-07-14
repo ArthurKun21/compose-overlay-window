@@ -7,10 +7,8 @@ import android.util.Log
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.Recomposer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.platform.createLifecycleAwareWindowRecomposer
 import androidx.core.view.isNotEmpty
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
@@ -74,12 +72,8 @@ public class ComposeServiceFloatingWindow(
                 ViewCompositionStrategy.DisposeOnLifecycleDestroyed(lifecycle),
             )
 
-            // ComposeView is hosted directly by WindowManager, so install a lifecycle-aware
-            // recomposer instead of relying on an Activity window recomposer.
-            val recomposer = createLifecycleAwareWindowRecomposer(
-                coroutineContext = this@ComposeServiceFloatingWindow.coroutineContext,
-                lifecycle = lifecycle,
-            )
+            // Keep the recomposer alive while WindowManager detaches the view during hide().
+            val recomposer = this@ComposeServiceFloatingWindow.createWindowRecomposer()
             setParentCompositionContext(recomposer)
             parentComposition = recomposer // Store for later disposal
 
