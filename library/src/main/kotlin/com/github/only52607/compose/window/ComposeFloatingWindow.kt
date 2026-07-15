@@ -10,10 +10,14 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.isNotEmpty
 import androidx.lifecycle.HasDefaultViewModelProviderFactory
+import androidx.lifecycle.SAVED_STATE_REGISTRY_OWNER_KEY
 import androidx.lifecycle.SavedStateViewModelFactory
+import androidx.lifecycle.VIEW_MODEL_STORE_OWNER_KEY
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.github.only52607.compose.core.CoreFloatingWindow
 import com.github.only52607.compose.core.defaultLayoutParams
@@ -58,6 +62,18 @@ public class ComposeFloatingWindow(
             this@ComposeFloatingWindow,
             null,
         )
+    }
+
+    override val defaultViewModelCreationExtras: CreationExtras = MutableCreationExtras().apply {
+        val application = context.applicationContext as? Application
+        if (application != null) {
+            set(
+                ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY,
+                application,
+            )
+        }
+        set(SAVED_STATE_REGISTRY_OWNER_KEY, this@ComposeFloatingWindow)
+        set(VIEW_MODEL_STORE_OWNER_KEY, this@ComposeFloatingWindow)
     }
 
     /**
