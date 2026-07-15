@@ -52,7 +52,7 @@ public class ComposeServiceFloatingWindow(
      * Sets the Jetpack Compose content for the floating window.
      *
      * This method creates a [ComposeView] and sets your [content] within it.
-     * It also sets up the necessary CompositionLocal provider for [LocalFloatingWindow]
+     * It also sets up the necessary CompositionLocal provider for [LocalServiceFloatingWindow]
      * and connects the view to this window's lifecycle, ViewModel store, and saved state registry.
      *
      * @param content The composable function defining the UI of the floating window.
