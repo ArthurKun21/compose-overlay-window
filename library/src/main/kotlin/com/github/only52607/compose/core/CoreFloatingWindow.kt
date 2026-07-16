@@ -143,7 +143,7 @@ public abstract class CoreFloatingWindow internal constructor(
      * Shows the floating window with a fade-in animation.
      *
      * Adds the [decorView] to the [WindowManager] using the configured [windowParams].
-     * Moves the lifecycle state to STARTED.
+     * Moves the lifecycle state to RESUMED.
      * Requires the `SYSTEM_ALERT_WINDOW` permission.
      *
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
@@ -194,9 +194,11 @@ public abstract class CoreFloatingWindow internal constructor(
                 _isShowing.update { true }
             }
 
-            // Move lifecycle to STARTED as soon as the view is attached. Lifecycle-aware Compose
-            // state collection waits for STARTED.
-            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+            // Move lifecycle to RESUMED as soon as the view is attached (delivers ON_START and
+            // ON_RESUME in order). A shown floating window is the overlay equivalent of a resumed
+            // Activity: lifecycle-aware collection such as collectAsStateWithLifecycle or
+            // repeatOnLifecycle gated on STARTED or RESUMED must be active while it is visible.
+            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
             // Animate fade-in
             decorView.animate()
                 .alpha(VISIBLE_ALPHA)
@@ -415,7 +417,21 @@ public abstract class CoreFloatingWindow internal constructor(
         // recomposer treats that detach as permanent destruction, so own the runner here and
         // cancel it only when content is replaced or this floating window is closed.
         lifecycleCoroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            recomposer.runRecomposeAndApplyChanges()
+            try {
+                recomposer.runRecomposeAndApplyChanges()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // An exception thrown by recomposition or an effect terminates the recomposer.
+                // Without this log the only visible symptom is a floating window whose UI
+                // silently stops updating, so make the failure mode explicit.
+                Log.e(
+                    tag,
+                    "Recomposer terminated unexpectedly. This floating window's Compose UI " +
+                        "will no longer update. Call setContent() again to recover.",
+                    e,
+                )
+            }
         }
     }
 
