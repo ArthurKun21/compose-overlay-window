@@ -34,8 +34,16 @@ internal fun defaultLayoutParams(context: Context) = WindowManager.LayoutParams(
     flags =
         (
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL // Allows touches to pass through
-                or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-            ) // Prevents the window from taking focus (e.g., keyboard)
+                or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE // Prevents the window from taking focus (e.g., keyboard)
+                or WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+            )
+    // FLAG_HARDWARE_ACCELERATED: windows added directly through WindowManager.addView are
+    // software-rendered by default (only Activity windows inherit acceleration from the theme).
+    // Modern Compose backs its layers with RenderNodes via GraphicsContext even when the host
+    // window is not hardware accelerated, and that combination can leave recomposed content
+    // stale on screen until something else forces a window traversal (e.g. updateViewLayout
+    // during a drag). Hardware acceleration must be requested before addView; it cannot be
+    // enabled later.
 
     // Set window type correctly for overlays
     // Requires SYSTEM_ALERT_WINDOW permission
