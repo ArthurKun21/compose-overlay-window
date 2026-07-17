@@ -1,9 +1,13 @@
 package com.github.only52607.compose.core
 
 import android.app.Application
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
@@ -13,7 +17,9 @@ import android.widget.FrameLayout
 import androidx.compose.runtime.Recomposer
 import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
@@ -104,6 +110,43 @@ public abstract class CoreFloatingWindow internal constructor(
         private set
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
+    // --- Screen state ---
+
+    // The floating window lifecycle must mirror what an Activity gets for free: when the screen
+    // turns off, the UI is no longer visible, so lifecycle-aware work (state collection,
+    // animations) must stop. Otherwise the window keeps composing/measuring into an invisible
+    // surface while the screen is off, and the accumulated work bursts onto the first frames
+    // after the screen turns back on, which is felt as lag.
+    private var isScreenInteractive =
+        (context.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isInteractive ?: true
+
+    private val screenStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(receiverContext: Context?, intent: Intent?) {
+            when (intent?.action) {
+                Intent.ACTION_SCREEN_ON -> isScreenInteractive = true
+                Intent.ACTION_SCREEN_OFF -> isScreenInteractive = false
+                else -> return
+            }
+            Log.d(tag, "Screen interactive: $isScreenInteractive")
+            syncLifecycleWithScreenState()
+        }
+    }
+
+    /**
+     * Moves the lifecycle to RESUMED only while the window is both showing and the screen is
+     * interactive; otherwise drops it to CREATED (delivering ON_PAUSE/ON_STOP).
+     */
+    private fun syncLifecycleWithScreenState() {
+        if (_isDestroyed.value) {
+            return
+        }
+        if (_isShowing.value && isScreenInteractive) {
+            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+        } else if (lifecycleRegistry.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+        }
+    }
 
     /**
      * Helper class providing access to the display metrics for the floating window.
@@ -198,7 +241,8 @@ public abstract class CoreFloatingWindow internal constructor(
             // ON_RESUME in order). A shown floating window is the overlay equivalent of a resumed
             // Activity: lifecycle-aware collection such as collectAsStateWithLifecycle or
             // repeatOnLifecycle gated on STARTED or RESUMED must be active while it is visible.
-            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+            // If the screen is currently off, this stays STOPPED until ACTION_SCREEN_ON.
+            syncLifecycleWithScreenState()
             // Animate fade-in
             decorView.animate()
                 .alpha(VISIBLE_ALPHA)
@@ -401,6 +445,18 @@ public abstract class CoreFloatingWindow internal constructor(
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
         // Enable SavedStateHandles for ViewModels
         enableSavedStateHandles()
+        // Follow the display's interactive state so lifecycle-aware work pauses while the
+        // screen is off. ACTION_SCREEN_ON/OFF are protected system broadcasts, so the receiver
+        // does not need to be exported.
+        ContextCompat.registerReceiver(
+            context,
+            screenStateReceiver,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Intent.ACTION_SCREEN_OFF)
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         Log.d(tag, "FloatingWindow initialized.")
     }
 
@@ -413,6 +469,20 @@ public abstract class CoreFloatingWindow internal constructor(
 
     /** Creates a recomposer owned by this window rather than by a single view attachment. */
     internal fun createWindowRecomposer(): Recomposer = Recomposer(coroutineContext).also { recomposer ->
+        // Mirror androidx's lifecycle-aware window recomposer: keep the composition frame clock
+        // (which drives withFrameNanos-based animations) paused while the window is not STARTED,
+        // i.e. while it is hidden or the screen is off. Recomposition from state changes still
+        // runs through the parent frame clock, so content stays current across hide()/show().
+        recomposer.pauseCompositionFrameClock()
+        val frameClockObserver = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> recomposer.resumeCompositionFrameClock()
+                Lifecycle.Event.ON_STOP -> recomposer.pauseCompositionFrameClock()
+                else -> Unit
+            }
+        }
+        lifecycle.addObserver(frameClockObserver)
+
         // WindowManager detaches the decor view on every hide(). A lifecycle-aware window
         // recomposer treats that detach as permanent destruction, so own the runner here and
         // cancel it only when content is replaced or this floating window is closed.
@@ -431,6 +501,8 @@ public abstract class CoreFloatingWindow internal constructor(
                         "will no longer update. Call setContent() again to recover.",
                     e,
                 )
+            } finally {
+                lifecycle.removeObserver(frameClockObserver)
             }
         }
     }
@@ -468,6 +540,12 @@ public abstract class CoreFloatingWindow internal constructor(
             return
         }
         Log.d(tag, "Destroying window...")
+
+        try {
+            context.unregisterReceiver(screenStateReceiver)
+        } catch (e: IllegalArgumentException) {
+            Log.w(tag, "Screen state receiver was not registered: ${e.message}")
+        }
 
         // Remove the view even when hide() has already marked it hidden but its fade-out has not
         // finished yet.
