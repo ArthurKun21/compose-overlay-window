@@ -1,11 +1,17 @@
 package com.github.only52607.compose.window
 
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.ParcelFileDescriptor
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.compose.material3.Text
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.MotionDurationScale
 import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -95,6 +101,22 @@ class FloatingWindowInstrumentedTest {
     }
 
     @Test
+    fun recomposerUsesSystemMotionDurationScale() {
+        val window = newWindow()
+
+        instrumentation.runOnMainSync {
+            window.setContent {
+                Text("Ready")
+            }
+
+            assertTrue(
+                "Floating window recomposer should respect the system animation duration scale.",
+                window.parentComposition?.effectCoroutineContext?.get(MotionDurationScale) != null,
+            )
+        }
+    }
+
+    @Test
     fun composeContentRecomposesAfterHideAndShow() {
         val window = newWindow()
         var label by mutableStateOf("Before")
@@ -156,10 +178,33 @@ class FloatingWindowInstrumentedTest {
         }
     }
 
-    private fun newWindow(): ComposeServiceFloatingWindow {
+    @Test
+    fun showDuringHideReappliesWindowParams() {
+        val recordingContext = RecordingWindowManagerContext(context)
+        val window = newWindow(recordingContext)
+
+        instrumentation.runOnMainSync {
+            window.setContent {
+                Text("Ready")
+            }
+            window.show()
+
+            val updateCallsBeforeReshow = recordingContext.windowManager.updateViewLayoutCalls
+            window.hide()
+            window.windowParams.x += 100
+            window.show()
+
+            assertTrue(
+                "Re-showing an attached window should reapply its updated layout parameters.",
+                recordingContext.windowManager.updateViewLayoutCalls > updateCallsBeforeReshow,
+            )
+        }
+    }
+
+    private fun newWindow(windowContext: Context = context): ComposeServiceFloatingWindow {
         lateinit var window: ComposeServiceFloatingWindow
         instrumentation.runOnMainSync {
-            window = ComposeServiceFloatingWindow(context)
+            window = ComposeServiceFloatingWindow(windowContext)
             windows += window
             assertTrue(
                 "SYSTEM_ALERT_WINDOW app-op was not granted for the test package.",
@@ -197,5 +242,29 @@ class FloatingWindowInstrumentedTest {
         const val TIMEOUT_SECONDS = 3L
         const val ANIMATION_SETTLE_MILLIS = 500L
         const val POLL_INTERVAL_MILLIS = 20L
+    }
+}
+
+private class RecordingWindowManagerContext(base: Context) : ContextWrapper(base) {
+    val windowManager = RecordingWindowManager(
+        base.getSystemService(Context.WINDOW_SERVICE) as WindowManager,
+    )
+
+    override fun getSystemService(name: String): Any? = if (name == Context.WINDOW_SERVICE) {
+        windowManager
+    } else {
+        super.getSystemService(name)
+    }
+}
+
+private class RecordingWindowManager(
+    private val delegate: WindowManager,
+) : WindowManager by delegate {
+    var updateViewLayoutCalls: Int = 0
+        private set
+
+    override fun updateViewLayout(view: View, params: ViewGroup.LayoutParams) {
+        updateViewLayoutCalls++
+        delegate.updateViewLayout(view, params)
     }
 }

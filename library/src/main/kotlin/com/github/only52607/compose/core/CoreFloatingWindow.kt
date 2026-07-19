@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.database.ContentObserver
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
@@ -15,6 +16,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.compose.runtime.Recomposer
+import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
@@ -27,7 +29,6 @@ import androidx.lifecycle.enableSavedStateHandles
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
@@ -52,13 +53,9 @@ public abstract class CoreFloatingWindow internal constructor(
 
     // Use a SupervisorJob so failure of one child doesn't cause others to fail
     // Use a custom scope tied to the window's lifecycle for managing window-specific coroutines
-    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.e(tag, "Coroutine Exception: ${throwable.message}", throwable)
-    }
     internal val coroutineContext = AndroidUiDispatcher.Main
     internal val lifecycleCoroutineScope = CoroutineScope(
-        SupervisorJob() +
-            coroutineContext + coroutineExceptionHandler,
+        SupervisorJob() + coroutineContext,
     )
     private val mainHandler = Handler(Looper.getMainLooper())
     private var coordinateUpdateScheduled = false
@@ -228,6 +225,7 @@ public abstract class CoreFloatingWindow internal constructor(
                 // animator so its removal callback cannot detach the view we are reusing.
                 _isShowing.update { true }
                 decorView.animate().cancel()
+                updateImmediately()
             } else {
                 // A frame callback posted before the previous detach may have been discarded.
                 coordinateUpdateScheduled = false
@@ -468,7 +466,10 @@ public abstract class CoreFloatingWindow internal constructor(
     }
 
     /** Creates a recomposer owned by this window rather than by a single view attachment. */
-    internal fun createWindowRecomposer(): Recomposer = Recomposer(coroutineContext).also { recomposer ->
+    internal fun createWindowRecomposer(): Recomposer {
+        val motionDurationScale = SystemMotionDurationScale(context.applicationContext)
+        val recomposer = Recomposer(coroutineContext + motionDurationScale)
+
         // Mirror androidx's lifecycle-aware window recomposer: keep the composition frame clock
         // (which drives withFrameNanos-based animations) paused while the window is not STARTED,
         // i.e. while it is hidden or the screen is off. Recomposition from state changes still
@@ -489,22 +490,13 @@ public abstract class CoreFloatingWindow internal constructor(
         lifecycleCoroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
             try {
                 recomposer.runRecomposeAndApplyChanges()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                // An exception thrown by recomposition or an effect terminates the recomposer.
-                // Without this log the only visible symptom is a floating window whose UI
-                // silently stops updating, so make the failure mode explicit.
-                Log.e(
-                    tag,
-                    "Recomposer terminated unexpectedly. This floating window's Compose UI " +
-                        "will no longer update. Call setContent() again to recover.",
-                    e,
-                )
             } finally {
                 lifecycle.removeObserver(frameClockObserver)
+                motionDurationScale.close()
             }
         }
+
+        return recomposer
     }
 
     /** Disposes the Compose composition and clears the reference. */
@@ -637,5 +629,39 @@ private class FloatingWindowDecorView(
         }
 
         onWindowSizeChanged()
+    }
+}
+
+private class SystemMotionDurationScale(context: Context) : MotionDurationScale, AutoCloseable {
+    private val contentResolver = context.contentResolver
+    private val animationScaleUri =
+        Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE)
+
+    @Volatile
+    override var scaleFactor: Float = readScaleFactor()
+        private set
+
+    private val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            scaleFactor = readScaleFactor()
+        }
+    }
+
+    init {
+        contentResolver.registerContentObserver(animationScaleUri, false, observer)
+    }
+
+    private fun readScaleFactor(): Float = Settings.Global.getFloat(
+        contentResolver,
+        Settings.Global.ANIMATOR_DURATION_SCALE,
+        DEFAULT_SCALE_FACTOR,
+    )
+
+    override fun close() {
+        contentResolver.unregisterContentObserver(observer)
+    }
+
+    private companion object {
+        const val DEFAULT_SCALE_FACTOR = 1f
     }
 }
