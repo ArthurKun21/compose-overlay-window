@@ -47,6 +47,8 @@ public abstract class CoreFloatingWindow internal constructor(
     ViewModelStoreOwner,
     AutoCloseable {
 
+    private val applicationContext = context.applicationContext
+
     public abstract val windowParams: WindowManager.LayoutParams
 
     // --- Lifecycle, ViewModel, SavedState ---
@@ -115,14 +117,18 @@ public abstract class CoreFloatingWindow internal constructor(
     // animations) must stop. Otherwise the window keeps composing/measuring into an invisible
     // surface while the screen is off, and the accumulated work bursts onto the first frames
     // after the screen turns back on, which is felt as lag.
-    private var isScreenInteractive =
-        (context.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isInteractive ?: true
+    private val powerManager =
+        applicationContext.getSystemService(Context.POWER_SERVICE) as? PowerManager
+    private val isScreenInteractive: Boolean
+        get() = powerManager?.isInteractive ?: true
 
     private val screenStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context?, intent: Intent?) {
             when (intent?.action) {
-                Intent.ACTION_SCREEN_ON -> isScreenInteractive = true
-                Intent.ACTION_SCREEN_OFF -> isScreenInteractive = false
+                Intent.ACTION_SCREEN_ON,
+                Intent.ACTION_SCREEN_OFF,
+                -> Unit
+
                 else -> return
             }
             Log.d(tag, "Screen interactive: $isScreenInteractive")
@@ -447,7 +453,7 @@ public abstract class CoreFloatingWindow internal constructor(
         // screen is off. ACTION_SCREEN_ON/OFF are protected system broadcasts, so the receiver
         // does not need to be exported.
         ContextCompat.registerReceiver(
-            context,
+            applicationContext,
             screenStateReceiver,
             IntentFilter().apply {
                 addAction(Intent.ACTION_SCREEN_ON)
@@ -467,7 +473,7 @@ public abstract class CoreFloatingWindow internal constructor(
 
     /** Creates a recomposer owned by this window rather than by a single view attachment. */
     internal fun createWindowRecomposer(): Recomposer {
-        val motionDurationScale = SystemMotionDurationScale(context.applicationContext)
+        val motionDurationScale = SystemMotionDurationScale(applicationContext)
         val recomposer = Recomposer(coroutineContext + motionDurationScale)
 
         // Mirror androidx's lifecycle-aware window recomposer: keep the composition frame clock
@@ -534,7 +540,7 @@ public abstract class CoreFloatingWindow internal constructor(
         Log.d(tag, "Destroying window...")
 
         try {
-            context.unregisterReceiver(screenStateReceiver)
+            applicationContext.unregisterReceiver(screenStateReceiver)
         } catch (e: IllegalArgumentException) {
             Log.w(tag, "Screen state receiver was not registered: ${e.message}")
         }

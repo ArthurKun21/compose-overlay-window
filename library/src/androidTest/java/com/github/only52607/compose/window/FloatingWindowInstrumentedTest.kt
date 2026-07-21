@@ -17,6 +17,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.only52607.compose.service.ComposeServiceFloatingWindow
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -49,7 +50,7 @@ class FloatingWindowInstrumentedTest {
     }
 
     @Test
-    fun showMovesLifecycleToStartedImmediately() {
+    fun showMovesLifecycleToResumedImmediately() {
         val window = newWindow()
 
         instrumentation.runOnMainSync {
@@ -59,9 +60,10 @@ class FloatingWindowInstrumentedTest {
             window.show()
         }
 
-        assertTrue(
-            "Floating window lifecycle should be STARTED immediately after show().",
-            window.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED),
+        assertEquals(
+            "Floating window lifecycle should be RESUMED immediately after show().",
+            Lifecycle.State.RESUMED,
+            window.lifecycle.currentState,
         )
     }
 
