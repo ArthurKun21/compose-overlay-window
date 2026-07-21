@@ -23,16 +23,25 @@ import com.github.only52607.compose.core.CoreFloatingWindow
 import com.github.only52607.compose.core.defaultLayoutParams
 
 /**
- * Manages a floating window that can display Jetpack Compose content overlaying other applications.
+ * Hosts Jetpack Compose content in a lifecycle-aware floating overlay window.
  *
- * This class handles the lifecycle, state saving, ViewModel scope, and WindowManager interactions
- * necessary for a floating Compose UI. It implements [AutoCloseable], allowing it to be used
- * with Kotlin's `use` function for automatic resource cleanup.
+ * With the recommended application context, the default [windowParams] create a
+ * hardware-accelerated application-overlay window. This class supplies Compose with this window's
+ * lifecycle, ViewModel store, saved-state registry, default [ViewModelProvider.Factory], creation
+ * extras for `SavedStateHandle` and `AndroidViewModel`, and [LocalFloatingWindow]. The composition
+ * and its window-owned recomposer are retained across [hide][CoreFloatingWindow.hide] and
+ * [show][CoreFloatingWindow.show], while frame-driven effects pause when the window is hidden or
+ * the screen is off.
+ *
+ * Call [close][CoreFloatingWindow.close] when the window is no longer needed. Closing detaches the
+ * view, disposes the composition, destroys scoped ViewModels, and releases registered receivers
+ * and observers. The class implements [AutoCloseable] for callers with a naturally bounded
+ * lifetime.
  *
  * Example usage with `use`:
  * ```kotlin
  * val floatingWindow = ComposeFloatingWindow(context)
- * floatingWindow.use { window -> // destroy() is called automatically at the end of this block
+ * floatingWindow.use { window -> // close() is called automatically at the end of this block
  *     window.setContent { /* Your Composable UI */ }
  *     window.show()
  *     // ... interact with the window ...
@@ -42,10 +51,10 @@ import com.github.only52607.compose.core.defaultLayoutParams
  * Remember to declare the `SYSTEM_ALERT_WINDOW` permission in your AndroidManifest.xml and
  * request it at runtime if targeting Android M (API 23) or higher.
  *
- * @param context The context used for creating the window and accessing system services.
- *                An application context is preferred to avoid leaks.
- * @param windowParams The layout parameters for the floating window. Defaults are provided
- *                     by [ComposeFloatingWindow.defaultLayoutParams].
+ * @param context Context used to create the Compose view and access [WindowManager]. Prefer an
+ * application context whose lifetime covers the window.
+ * @param windowParams Layout parameters used to attach and update the window. The default requests
+ * a hardware-accelerated, non-focusable application overlay with wrap-content dimensions.
  */
 public class ComposeFloatingWindow(
     private val context: Context,
@@ -77,14 +86,16 @@ public class ComposeFloatingWindow(
     }
 
     /**
-     * Sets the Jetpack Compose content for the floating window.
+     * Sets or replaces the Compose content owned by this window.
      *
-     * This method creates a [ComposeView] and sets your [content] within it.
-     * It also sets up the necessary CompositionLocal provider for [LocalFloatingWindow]
-     * and connects the view to this window's lifecycle, ViewModel store, and saved state registry.
+     * The new [ComposeView] receives this window's lifecycle, ViewModel store, saved-state registry,
+     * default ViewModel factory and creation extras, and [LocalFloatingWindow]. Its recomposer
+     * survives normal WindowManager detach/reattach cycles and follows the window lifecycle for
+     * frame-clock pausing. Replacing existing content disposes the previous composition and
+     * recomposer. If the window is already showing, its layout is updated after replacement.
      *
      * @param content The composable function defining the UI of the floating window.
-     * @throws IllegalStateException if called after [checkDestroyed] or [close] has been invoked.
+     * @throws IllegalStateException if called after [close][CoreFloatingWindow.close].
      */
     public fun setContent(content: @Composable () -> Unit) {
         checkDestroyed()
