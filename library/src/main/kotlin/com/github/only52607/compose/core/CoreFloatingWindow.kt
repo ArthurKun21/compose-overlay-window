@@ -16,6 +16,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.compose.runtime.Recomposer
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.compose.ui.platform.ComposeView
@@ -684,13 +685,13 @@ private class SystemMotionDurationScale(context: Context) : MotionDurationScale,
     private val animationScaleUri =
         Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE)
 
-    @Volatile
-    override var scaleFactor: Float = readScaleFactor()
-        private set
+    private val scaleFactorState = mutableFloatStateOf(readScaleFactor())
+    override val scaleFactor: Float
+        get() = scaleFactorState.floatValue
 
     private val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean) {
-            scaleFactor = readScaleFactor()
+            scaleFactorState.floatValue = readScaleFactor()
         }
     }
 

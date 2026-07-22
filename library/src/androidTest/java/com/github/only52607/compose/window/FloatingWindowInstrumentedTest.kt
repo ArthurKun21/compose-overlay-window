@@ -119,6 +119,33 @@ class FloatingWindowInstrumentedTest {
     }
 
     @Test
+    fun recomposerObservesSystemMotionDurationScaleChanges() {
+        val window = newWindow()
+        lateinit var motionDurationScale: MotionDurationScale
+
+        instrumentation.runOnMainSync {
+            window.setContent {
+                Text("Ready")
+            }
+            motionDurationScale = requireNotNull(
+                window.parentComposition?.effectCoroutineContext?.get(MotionDurationScale),
+            )
+        }
+
+        val originalScale = executeShellCommand("settings get global animator_duration_scale")
+            .trim()
+            .toFloatOrNull() ?: 1f
+        val updatedScale = if (originalScale == 0f) 1f else 0f
+
+        try {
+            executeShellCommand("settings put global animator_duration_scale $updatedScale")
+            waitUntilMotionDurationScaleEquals(motionDurationScale, updatedScale)
+        } finally {
+            executeShellCommand("settings put global animator_duration_scale $originalScale")
+        }
+    }
+
+    @Test
     fun composeContentRecomposesAfterHideAndShow() {
         val window = newWindow()
         var label by mutableStateOf("Before")
@@ -234,10 +261,32 @@ class FloatingWindowInstrumentedTest {
         }
     }
 
-    private fun executeShellCommand(command: String) {
+    private fun waitUntilMotionDurationScaleEquals(
+        motionDurationScale: MotionDurationScale,
+        expectedScale: Float,
+    ) {
+        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS)
+        while (System.nanoTime() < deadline) {
+            if (motionDurationScale.scaleFactor == expectedScale) {
+                return
+            }
+            Thread.sleep(POLL_INTERVAL_MILLIS)
+        }
+
+        assertEquals(
+            "Floating window recomposer did not observe the animator duration scale change.",
+            expectedScale,
+            motionDurationScale.scaleFactor,
+        )
+    }
+
+    private fun executeShellCommand(command: String): String {
         val descriptor: ParcelFileDescriptor = instrumentation.uiAutomation.executeShellCommand(command)
-        FileInputStream(descriptor.fileDescriptor).bufferedReader().use { it.readText() }
-        descriptor.close()
+        return try {
+            FileInputStream(descriptor.fileDescriptor).bufferedReader().use { it.readText() }
+        } finally {
+            descriptor.close()
+        }
     }
 
     private companion object {
