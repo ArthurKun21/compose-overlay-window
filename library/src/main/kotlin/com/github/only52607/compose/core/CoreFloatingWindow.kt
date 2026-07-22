@@ -1,18 +1,28 @@
 package com.github.only52607.compose.core
 
 import android.app.Application
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.database.ContentObserver
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
+import android.view.Gravity
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.compose.runtime.Recomposer
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
@@ -20,16 +30,33 @@ import androidx.lifecycle.enableSavedStateHandles
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * Base owner for a Compose hierarchy hosted directly by [WindowManager].
+ *
+ * A window starts in [Lifecycle.State.CREATED]. [show] attaches [decorView], sets [isShowing] to
+ * `true`, and advances the lifecycle to [Lifecycle.State.RESUMED] while the screen is interactive.
+ * [hide] immediately sets [isShowing] to `false` and returns the lifecycle to
+ * [Lifecycle.State.CREATED], then detaches the view after its fade-out animation. Turning the
+ * screen off applies the same lifecycle transition to a shown window; turning it on resumes that
+ * window.
+ *
+ * Hiding or temporarily detaching the view does not dispose its composition. The window owns its
+ * recomposer across detach/reattach cycles, pauses frame-driven effects while stopped, and honors
+ * the system animator-duration scale. Call [close] when the window is no longer needed to detach
+ * it immediately, dispose its composition, destroy its lifecycle and ViewModels, and release
+ * registered observers and receivers. A closed instance cannot be shown again.
+ */
 public abstract class CoreFloatingWindow internal constructor(
     private val context: Context,
     private val tag: String = "CoreFloatingWindow",
@@ -37,19 +64,23 @@ public abstract class CoreFloatingWindow internal constructor(
     ViewModelStoreOwner,
     AutoCloseable {
 
+    private val applicationContext = context.applicationContext
+
+    /**
+     * Layout parameters used when attaching or updating this window.
+     *
+     * Changes made while the window is visible take effect after calling [update]. Changes made
+     * while hidden are applied by the next [show].
+     */
     public abstract val windowParams: WindowManager.LayoutParams
 
     // --- Lifecycle, ViewModel, SavedState ---
 
     // Use a SupervisorJob so failure of one child doesn't cause others to fail
     // Use a custom scope tied to the window's lifecycle for managing window-specific coroutines
-    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.e(tag, "Coroutine Exception: ${throwable.message}", throwable)
-    }
     internal val coroutineContext = AndroidUiDispatcher.Main
     internal val lifecycleCoroutineScope = CoroutineScope(
-        SupervisorJob() +
-            coroutineContext + coroutineExceptionHandler,
+        SupervisorJob() + coroutineContext,
     )
     private val mainHandler = Handler(Looper.getMainLooper())
     private var coordinateUpdateScheduled = false
@@ -70,8 +101,14 @@ public abstract class CoreFloatingWindow internal constructor(
     private val _isShowing = MutableStateFlow(false)
 
     /**
-     * A [StateFlow] indicating whether the floating window is currently shown (`true`) or hidden (`false`).
-     * Does not reflect the destroyed state. Check [isDestroyed] for that.
+     * Whether this window is logically shown.
+     *
+     * The value becomes `true` when [show] successfully attaches or reuses the window and becomes
+     * `false` as soon as [hide] starts. During the fade-out animation, the value is already `false`
+     * even though [decorView] may remain attached briefly. This state is independent of screen
+     * interactivity; a shown window remains `true` while its lifecycle is stopped for screen-off.
+     *
+     * This does not indicate whether the instance has been closed. Check [isDestroyed] for that.
      */
     public val isShowing: StateFlow<Boolean>
         get() = _isShowing.asStateFlow()
@@ -79,15 +116,18 @@ public abstract class CoreFloatingWindow internal constructor(
     private val _isDestroyed = MutableStateFlow(false)
 
     /**
-     * A [StateFlow] indicating whether the floating window has been destroyed (`true`).
-     * Once destroyed, the instance cannot be reused. Create a new instance if needed.
+     * Whether [close] has permanently destroyed this window.
+     *
+     * Once this becomes `true`, the instance cannot be reused. Create a new window instead.
      */
     public val isDestroyed: StateFlow<Boolean>
         get() = _isDestroyed.asStateFlow()
 
     /**
      * The root view container for the floating window's content.
-     * This is the view added to the WindowManager.
+     *
+     * This view is attached directly to [WindowManager] by [show] and detached by [hide] or
+     * [close]. Its Compose content and recomposer survive a normal [hide]/[show] cycle.
      */
     public var decorView: ViewGroup = FloatingWindowDecorView(
         context = context,
@@ -101,6 +141,47 @@ public abstract class CoreFloatingWindow internal constructor(
         private set
 
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
+    // --- Screen state ---
+
+    // The floating window lifecycle must mirror what an Activity gets for free: when the screen
+    // turns off, the UI is no longer visible, so lifecycle-aware work (state collection,
+    // animations) must stop. Otherwise the window keeps composing/measuring into an invisible
+    // surface while the screen is off, and the accumulated work bursts onto the first frames
+    // after the screen turns back on, which is felt as lag.
+    private val powerManager =
+        applicationContext.getSystemService(Context.POWER_SERVICE) as? PowerManager
+    private val isScreenInteractive: Boolean
+        get() = powerManager?.isInteractive ?: true
+
+    private val screenStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(receiverContext: Context?, intent: Intent?) {
+            when (intent?.action) {
+                Intent.ACTION_SCREEN_ON,
+                Intent.ACTION_SCREEN_OFF,
+                -> Unit
+
+                else -> return
+            }
+            Log.d(tag, "Screen interactive: $isScreenInteractive")
+            syncLifecycleWithScreenState()
+        }
+    }
+
+    /**
+     * Moves the lifecycle to RESUMED only while the window is both showing and the screen is
+     * interactive; otherwise drops it to CREATED (delivering ON_PAUSE/ON_STOP).
+     */
+    private fun syncLifecycleWithScreenState() {
+        if (_isDestroyed.value) {
+            return
+        }
+        if (_isShowing.value && isScreenInteractive) {
+            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+        } else if (lifecycleRegistry.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+        }
+    }
 
     /**
      * Helper class providing access to the display metrics for the floating window.
@@ -139,12 +220,16 @@ public abstract class CoreFloatingWindow internal constructor(
     /**
      * Shows the floating window with a fade-in animation.
      *
-     * Adds the [decorView] to the [WindowManager] using the configured [windowParams].
-     * Moves the lifecycle state to STARTED.
-     * Requires the `SYSTEM_ALERT_WINDOW` permission.
+     * Attaches [decorView] to [WindowManager] with [windowParams], or reuses it if [hide]'s
+     * fade-out is still in progress. When the screen is interactive, the lifecycle advances to
+     * [Lifecycle.State.RESUMED]; otherwise it remains [Lifecycle.State.CREATED] until screen-on.
+     * Calling this while already shown reapplies [windowParams].
+     *
+     * This operation requires the `SYSTEM_ALERT_WINDOW` permission. If the permission is absent,
+     * the call logs a warning and leaves the window hidden.
      *
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
-     * @throws SecurityException if the `SYSTEM_ALERT_WINDOW` permission is not granted (logged as warning).
+     * @throws IllegalArgumentException if Compose content has not been provided by a subclass.
      */
     public fun show() {
         checkDestroyed()
@@ -170,25 +255,39 @@ public abstract class CoreFloatingWindow internal constructor(
         Log.d(tag, "Showing window.")
 
         try {
-            // Ensure the view doesn't have a parent before adding
-            if (decorView.parent != null) {
-                Log.w(tag, "DecorView already has a parent. Removing it.")
-                (decorView.parent as? ViewGroup)?.removeView(decorView)
+            val parent = decorView.parent
+            val isAttachedToWindowManager = parent != null && parent !is ViewGroup
+            if (parent is ViewGroup) {
+                Log.w(tag, "DecorView already has a ViewGroup parent. Removing it.")
+                parent.removeView(decorView)
             }
-            // Set initial alpha to 0 for fade-in animation
-            decorView.alpha = INVISIBLE_ALPHA
-            windowParams.disableSystemMoveAnimations()
-            windowManager.addView(decorView, windowParams)
-            // Move lifecycle to STARTED as soon as the view is attached. Lifecycle-aware Compose
-            // state collection and the lifecycle-aware recomposer both wait for STARTED.
-            lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+
+            if (isAttachedToWindowManager) {
+                // hide() is still fading out. Mark the window as showing before cancelling the
+                // animator so its removal callback cannot detach the view we are reusing.
+                _isShowing.update { true }
+                decorView.animate().cancel()
+                updateImmediately()
+            } else {
+                // A frame callback posted before the previous detach may have been discarded.
+                coordinateUpdateScheduled = false
+                decorView.alpha = INVISIBLE_ALPHA
+                windowParams.disableSystemMoveAnimations()
+                windowManager.addView(decorView, windowParams)
+                _isShowing.update { true }
+            }
+
+            // Move lifecycle to RESUMED as soon as the view is attached (delivers ON_START and
+            // ON_RESUME in order). A shown floating window is the overlay equivalent of a resumed
+            // Activity: lifecycle-aware collection such as collectAsStateWithLifecycle or
+            // repeatOnLifecycle gated on STARTED or RESUMED must be active while it is visible.
+            // If the screen is currently off, this stays STOPPED until ACTION_SCREEN_ON.
+            syncLifecycleWithScreenState()
             // Animate fade-in
             decorView.animate()
                 .alpha(VISIBLE_ALPHA)
                 .setDuration(ANIMATION_DURATION)
                 .start()
-            // Update state last
-            _isShowing.update { true }
         } catch (e: Exception) {
             // Catch potential exceptions from WindowManager (e.g., security, bad token)
             Log.e(tag, "Error showing window: ${e.message}", e)
@@ -200,8 +299,9 @@ public abstract class CoreFloatingWindow internal constructor(
     /**
      * Updates the window coordinates to the specified position.
      *
-     * This method updates the window parameters with new coordinates and followed
-     * by a call to [update] to apply the changes to the displayed window.
+     * Stores the coordinates in [windowParams] and coalesces visible-window updates onto the next
+     * animation frame. If the window is hidden, the stored coordinates are used by the next
+     * [show].
      *
      * @param left The new X coordinate (left position) for the window.
      * @param top The new Y coordinate (top position) for the window.
@@ -255,8 +355,12 @@ public abstract class CoreFloatingWindow internal constructor(
         // Some Android versions relayout WRAP_CONTENT overlay windows by moving the surface
         // when the content size changes. Re-apply the stored top-start coordinates after the
         // new size is known so expanding/collapsing Compose content does not jump on screen.
-        windowParams.x = windowParams.x.coerceIn(0, maxXCoordinate)
-        windowParams.y = windowParams.y.coerceIn(0, maxYCoordinate)
+        // Coordinates for other gravities are offsets with different semantics and must not be
+        // clamped as if they were absolute top-start positions.
+        if (windowParams.gravity == (Gravity.START or Gravity.TOP)) {
+            windowParams.x = windowParams.x.coerceIn(0, maxXCoordinate)
+            windowParams.y = windowParams.y.coerceIn(0, maxYCoordinate)
+        }
 
         try {
             scheduleCoordinateUpdate()
@@ -267,7 +371,10 @@ public abstract class CoreFloatingWindow internal constructor(
 
     /**
      * Updates the layout of the floating window using the current [windowParams].
-     * Call this after modifying [windowParams] (e.g., position or size) while the window is showing.
+     *
+     * Call this after modifying [windowParams] (for example, its position or size) while the
+     * window is showing. Calls made while hidden do not attach or update the window; the parameters
+     * are applied by the next [show]. Calls from a background thread are posted to the main thread.
      *
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
      */
@@ -304,8 +411,11 @@ public abstract class CoreFloatingWindow internal constructor(
     /**
      * Hides the floating window with fade-out animation.
      *
-     * Removes the [decorView] from the [WindowManager].
-     * Moves the lifecycle state to STOPPED.
+     * Sets [isShowing] to `false` immediately, dispatches lifecycle pause/stop events so the
+     * lifecycle returns to [Lifecycle.State.CREATED], and removes [decorView] from [WindowManager]
+     * when the animation finishes. The composition is retained and can be resumed by [show]. If
+     * [show] is called before the fade-out finishes, removal is cancelled and the existing view is
+     * reused.
      *
      * @throws IllegalStateException if the window is already destroyed ([isDestroyed] is true).
      */
@@ -327,9 +437,16 @@ public abstract class CoreFloatingWindow internal constructor(
                     .alpha(INVISIBLE_ALPHA)
                     .setDuration(ANIMATION_DURATION)
                     .withEndAction {
+                        if (_isShowing.value) {
+                            return@withEndAction
+                        }
+
                         // Remove view after animation
                         try {
-                            windowManager.removeViewImmediate(decorView)
+                            if (decorView.parent != null) {
+                                windowManager.removeViewImmediate(decorView)
+                            }
+                            coordinateUpdateScheduled = false
                         } catch (e: Exception) {
                             Log.e(tag, "Error removing window: ${e.message}", e)
                         }
@@ -375,6 +492,18 @@ public abstract class CoreFloatingWindow internal constructor(
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
         // Enable SavedStateHandles for ViewModels
         enableSavedStateHandles()
+        // Follow the display's interactive state so lifecycle-aware work pauses while the
+        // screen is off. ACTION_SCREEN_ON/OFF are protected system broadcasts, so the receiver
+        // does not need to be exported.
+        ContextCompat.registerReceiver(
+            applicationContext,
+            screenStateReceiver,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Intent.ACTION_SCREEN_OFF)
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         Log.d(tag, "FloatingWindow initialized.")
     }
 
@@ -383,6 +512,40 @@ public abstract class CoreFloatingWindow internal constructor(
         check(!_isDestroyed.value) {
             "FloatingWindow has been destroyed and cannot be used."
         }
+    }
+
+    /** Creates a recomposer owned by this window rather than by a single view attachment. */
+    internal fun createWindowRecomposer(): Recomposer {
+        val motionDurationScale = SystemMotionDurationScale(applicationContext)
+        val recomposer = Recomposer(coroutineContext + motionDurationScale)
+
+        // Mirror androidx's lifecycle-aware window recomposer: keep the composition frame clock
+        // (which drives withFrameNanos-based animations) paused while the window is not STARTED,
+        // i.e. while it is hidden or the screen is off. Recomposition from state changes still
+        // runs through the parent frame clock, so content stays current across hide()/show().
+        recomposer.pauseCompositionFrameClock()
+        val frameClockObserver = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> recomposer.resumeCompositionFrameClock()
+                Lifecycle.Event.ON_STOP -> recomposer.pauseCompositionFrameClock()
+                else -> Unit
+            }
+        }
+        lifecycle.addObserver(frameClockObserver)
+
+        // WindowManager detaches the decor view on every hide(). A lifecycle-aware window
+        // recomposer treats that detach as permanent destruction, so own the runner here and
+        // cancel it only when content is replaced or this floating window is closed.
+        lifecycleCoroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            try {
+                recomposer.runRecomposeAndApplyChanges()
+            } finally {
+                lifecycle.removeObserver(frameClockObserver)
+                motionDurationScale.close()
+            }
+        }
+
+        return recomposer
     }
 
     /** Disposes the Compose composition and clears the reference. */
@@ -399,18 +562,17 @@ public abstract class CoreFloatingWindow internal constructor(
 
     /**
      * Implementation of [AutoCloseable].
-     * Destroys the floating window, releasing all associated resources.
+     * Permanently destroys the floating window and releases its resources.
      *
      * This performs the following actions:
-     * 1. Hides the window if it is currently showing.
-     * 2. Disposes the Jetpack Compose composition.
-     * 3. Cancels all coroutines launched in the window's lifecycle scope.
-     * 4. Moves the lifecycle state to DESTROYED.
-     * 5. Clears the [ViewModelStore], destroying associated ViewModels.
-     * 6. Cleans up internal references.
+     * 1. Unregisters the screen-state receiver.
+     * 2. Cancels any fade animation and detaches [decorView] immediately.
+     * 3. Disposes the Compose composition and its window-owned recomposer.
+     * 4. Cancels window-owned coroutines and animation-scale observation.
+     * 5. Moves the lifecycle to [Lifecycle.State.DESTROYED].
+     * 6. Clears the [ViewModelStore], destroying associated ViewModels.
      *
-     * **Once destroyed, this instance cannot be reused.** Create a new `FloatingWindow`
-     * instance if you need to show a floating window again.
+     * Repeated calls are ignored. Once destroyed, this instance cannot be reused.
      */
     public override fun close() {
         if (_isDestroyed.value) {
@@ -419,25 +581,34 @@ public abstract class CoreFloatingWindow internal constructor(
         }
         Log.d(tag, "Destroying window...")
 
-        // Hide the window if showing (ensures view is removed from WindowManager)
-        if (_isShowing.value) {
-            try {
-                _isShowing.update { false }
-                decorView.animate().cancel()
+        try {
+            applicationContext.unregisterReceiver(screenStateReceiver)
+        } catch (e: IllegalArgumentException) {
+            Log.w(tag, "Screen state receiver was not registered: ${e.message}")
+        }
 
-                if (decorView.parent != null) {
-                    windowManager.removeViewImmediate(decorView)
-                } else {
-                    Log.w(tag, "Destroy called but DecorView has no parent.")
-                }
+        // Remove the view even when hide() has already marked it hidden but its fade-out has not
+        // finished yet.
+        val wasShowing = _isShowing.value
+        _isShowing.update { false }
+        try {
+            decorView.animate().cancel()
 
+            if (decorView.parent != null) {
+                windowManager.removeViewImmediate(decorView)
+            } else if (wasShowing) {
+                Log.w(tag, "Destroy called but DecorView has no parent.")
+            }
+        } catch (e: Exception) {
+            Log.e(
+                tag,
+                "Error hiding window during destruction: ${e.message}",
+                e,
+            )
+        } finally {
+            coordinateUpdateScheduled = false
+            if (wasShowing) {
                 lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-            } catch (e: Exception) {
-                Log.e(
-                    tag,
-                    "Error hiding window during destruction: ${e.message}",
-                    e,
-                )
             }
         }
 
@@ -506,5 +677,39 @@ private class FloatingWindowDecorView(
         }
 
         onWindowSizeChanged()
+    }
+}
+
+private class SystemMotionDurationScale(context: Context) : MotionDurationScale, AutoCloseable {
+    private val contentResolver = context.contentResolver
+    private val animationScaleUri =
+        Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE)
+
+    private val scaleFactorState = mutableFloatStateOf(readScaleFactor())
+    override val scaleFactor: Float
+        get() = scaleFactorState.floatValue
+
+    private val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) {
+            scaleFactorState.floatValue = readScaleFactor()
+        }
+    }
+
+    init {
+        contentResolver.registerContentObserver(animationScaleUri, false, observer)
+    }
+
+    private fun readScaleFactor(): Float = Settings.Global.getFloat(
+        contentResolver,
+        Settings.Global.ANIMATOR_DURATION_SCALE,
+        DEFAULT_SCALE_FACTOR,
+    )
+
+    override fun close() {
+        contentResolver.unregisterContentObserver(observer)
+    }
+
+    private companion object {
+        const val DEFAULT_SCALE_FACTOR = 1f
     }
 }
