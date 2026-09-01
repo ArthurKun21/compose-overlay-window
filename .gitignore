@@ -17,3 +17,5 @@ local.properties
 site
 .venv
 uv.lock
+
+.zcode/**
