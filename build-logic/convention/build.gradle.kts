@@ -6,6 +6,7 @@ dependencies {
     compileOnly(libs.androidx.gradle)
     compileOnly(libs.kotlin.gradle)
     compileOnly(libs.compose.compiler.gradle)
+    compileOnly(libs.vanniktech.maven.publish.gradle)
     implementation(libs.spotless.gradle)
 }
 
@@ -34,6 +35,10 @@ gradlePlugin {
         register("sampleCommonDeps") {
             id = "cfw.sample.common.deps"
             implementationClass = "SampleCommonDepsConventionPlugin"
+        }
+        register("mavenPublish") {
+            id = "cfw.maven.publish"
+            implementationClass = "MavenPublishConventionPlugin"
         }
     }
 }

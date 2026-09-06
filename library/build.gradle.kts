@@ -1,7 +1,7 @@
 plugins {
-    `maven-publish`
     id("cfw.library")
     id("cfw.library.tests")
+    id("cfw.maven.publish")
 }
 
 android {
@@ -16,15 +16,7 @@ android {
             )
         }
     }
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-            withJavadocJar()
-        }
-    }
 }
-
-version = 1.0
 
 kotlin {
     explicitApi()
@@ -51,14 +43,15 @@ dependencies {
     implementation(libs.google.material)
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("release") {
-            groupId = "com.github.only52607"
-            artifactId = "compose-floating-window"
-            afterEvaluate {
-                from(components["release"])
-            }
-        }
+mavenPublishing {
+    coordinates(
+        groupId = "com.github.ArthurKun21",
+        artifactId = "compose-floating-window",
+        version = version.toString(),
+    )
+
+    pom {
+        name.set("compose-floating-window")
+        description.set("Global Floating Window Framework based on Jetpack Compose")
     }
 }
