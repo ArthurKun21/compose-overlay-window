@@ -1,8 +1,4 @@
 [versions]
-compile-sdk = "36"
-target-sdk = "36"
-min-sdk = "24"
-
 agp = "9.4.0"
 kotlin = "2.4.10"
 
