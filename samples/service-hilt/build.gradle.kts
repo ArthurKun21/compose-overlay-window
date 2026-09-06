@@ -1,7 +1,7 @@
 plugins {
-    id("android.application")
-    id("android.tests")
-    id("sample.common.deps")
+    id("cfw.android.application")
+    id("cfw.android.tests")
+    id("cfw.sample.common.deps")
 
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)

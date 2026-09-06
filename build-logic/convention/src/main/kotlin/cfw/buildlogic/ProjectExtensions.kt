@@ -1,11 +1,9 @@
-package buildlogic
+package cfw.buildlogic
 
 import com.android.build.api.dsl.CommonExtension
-import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.the
-
-val Project.libs get() = the<LibrariesForLibs>()
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 internal fun Project.configureAndroid(commonExtension: CommonExtension) {
     commonExtension.apply {
@@ -18,6 +16,14 @@ internal fun Project.configureAndroid(commonExtension: CommonExtension) {
         compileOptions.apply {
             sourceCompatibility = AndroidConfig.JavaVersion
             targetCompatibility = AndroidConfig.JavaVersion
+        }
+    }
+}
+
+internal fun Project.configureCommonKotlinCompileOptions() {
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(AndroidConfig.JvmTarget)
         }
     }
 }

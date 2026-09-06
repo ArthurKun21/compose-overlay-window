@@ -1,7 +1,7 @@
 plugins {
     `maven-publish`
-    id("library")
-    id("library.tests")
+    id("cfw.library")
+    id("cfw.library.tests")
 }
 
 android {
