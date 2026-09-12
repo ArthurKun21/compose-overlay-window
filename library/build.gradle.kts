@@ -46,12 +46,12 @@ dependencies {
 mavenPublishing {
     coordinates(
         groupId = "com.github.ArthurKun21",
-        artifactId = "compose-floating-window",
+        artifactId = "compose-overlay-window",
         version = version.toString(),
     )
 
     pom {
-        name.set("compose-floating-window")
+        name.set("compose-overlay-window")
         description.set("Global Floating Window Framework based on Jetpack Compose")
     }
 }
