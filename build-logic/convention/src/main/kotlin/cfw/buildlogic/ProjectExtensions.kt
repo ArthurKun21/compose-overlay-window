@@ -7,7 +7,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 internal fun Project.configureAndroid(commonExtension: CommonExtension) {
     commonExtension.apply {
-        compileSdk = AndroidConfig.COMPILE_SDK
+        compileSdk = release(AndroidConfig.COMPILE_SDK) {
+            minorApiLevel = AndroidConfig.COMPILE_SDK_MINOR
+        }
 
         defaultConfig.apply {
             minSdk = AndroidConfig.MIN_SDK
