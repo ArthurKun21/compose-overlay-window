@@ -40,5 +40,9 @@ gradlePlugin {
             id = "cfw.maven.publish"
             implementationClass = "MavenPublishConventionPlugin"
         }
+        register("androidBase") {
+            id = "cfw.android.base"
+            implementationClass = "AndroidBasePlugin"
+        }
     }
 }
