@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+@file:Suppress("UnusedImport", "INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
 package androidx.compose.material3
 
 import androidx.compose.material3.internal.Strings
 import androidx.compose.material3.internal.getString
-import androidx.compose.material3.tokens.ColorSchemeKeyTokens
+import androidx.compose.material3.tokens.ColorToken
 import androidx.compose.material3.tokens.DialogTokens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
@@ -134,7 +134,7 @@ public fun SystemAlertDialog(
 /** Converts a color token key to the local color scheme provided by the theme */
 @ReadOnlyComposable
 @Composable
-internal fun ColorSchemeKeyTokens.toColor(): Color {
+internal fun ColorToken.toColor(): Color {
     return MaterialTheme.colorScheme.fromToken(this)
 }
 

@@ -7,7 +7,7 @@ appcompat = "1.8.0"
 lifecycle = "2.11.0"
 activity-compose = "1.13.0"
 
-compose-bom = "2026.09.00"
+compose-bom = "2026.09.01"
 
 junit = "4.13.2"
 
@@ -37,7 +37,7 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
 
-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+compose-bom = { module = "androidx.compose:compose-bom-alpha", version.ref = "compose-bom" }
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
