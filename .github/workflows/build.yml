@@ -34,7 +34,7 @@ jobs:
         module: [ app-activity, service-hilt, fullscreen-dialog, keyboard-usage ]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Validate Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v6
