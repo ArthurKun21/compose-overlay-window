@@ -27,7 +27,6 @@ class AndroidLibraryTestsConventionPlugin : Plugin<Project> {
                 add("testImplementation", libs.library("junit"))
                 add("androidTestImplementation", libs.library("androidx-test-junit"))
                 add("androidTestImplementation", libs.library("androidx-test-espresso"))
-                add("androidTestImplementation", platform(libs.library("compose-bom")))
                 add("androidTestImplementation", libs.library("compose-ui-test-junit4"))
             }
         }

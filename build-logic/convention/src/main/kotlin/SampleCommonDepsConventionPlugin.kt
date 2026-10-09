@@ -1,3 +1,4 @@
+import cfw.buildlogic.ComposeAlignment
 import cfw.buildlogic.library
 import cfw.buildlogic.libs
 import org.gradle.api.Plugin
@@ -16,9 +17,10 @@ class SampleCommonDepsConventionPlugin : Plugin<Project> {
                 add("implementation", libs.library("androidx-lifecycle-runtime-ktx"))
                 add("implementation", libs.library("androidx-lifecycle-viewmodel-compose"))
                 add("implementation", libs.library("activity-compose"))
-                add("implementation", platform(libs.library("compose-bom")))
                 add("implementation", libs.findBundle("compose-ui").get())
             }
+
+            ComposeAlignment.constrain(target)
         }
     }
 }

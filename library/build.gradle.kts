@@ -1,3 +1,5 @@
+import cfw.buildlogic.ComposeAlignment
+
 plugins {
     id("cfw.library")
     id("cfw.library.tests")
@@ -29,7 +31,8 @@ kotlin {
 }
 
 dependencies {
-    implementation(platform(libs.compose.bom))
+    ComposeAlignment.constrain(project)
+
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling.preview)
