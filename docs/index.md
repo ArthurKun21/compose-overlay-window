@@ -1,21 +1,21 @@
 # Compose Floating Window
 
-Compose Floating Window lets you render Jetpack Compose UI in a system overlay window. It covers the common overlay cases without dropping down to raw `WindowManager` code: draggable floating buttons, service-owned overlays, text input inside overlays, and system dialogs rendered from Compose.
+Compose Floating Window shows Jetpack Compose UI in a system overlay window. It covers the common cases: draggable floating buttons, service-owned windows, text input, and system dialogs rendered from Compose. You do not need to write raw `WindowManager` code.
 
 ![Preview](assets/example.gif)
 
 ## What it gives you
 
-- `ComposeFloatingWindow` for overlays created from an activity or other app-owned component.
-- `ComposeServiceFloatingWindow` for overlays that live inside an Android `Service`.
-- Drag modifiers that keep the overlay on screen.
+- `ComposeFloatingWindow` for floating windows created from an activity or another app component.
+- `ComposeServiceFloatingWindow` for floating windows that live inside an Android `Service`.
+- Drag modifiers that keep the floating window on screen.
 - Permission helpers for `SYSTEM_ALERT_WINDOW`.
-- Overlay-friendly dialog APIs: `SystemAlertDialog` and `SystemDialog`.
+- Overlay dialog APIs: `SystemAlertDialog` and `SystemDialog`.
 - Integration points for `ViewModel`, saved state, and text input.
 
 ## Installation
 
-The library is published through JitPack.
+The library requires Android 7.0 (API level 24) or newer. You can get it from JitPack.
 
 ```kotlin
 dependencyResolutionManagement {
@@ -27,7 +27,7 @@ dependencyResolutionManagement {
 }
 
 dependencies {
-    implementation("com.github.ArthurKun21:compose-overlay-window:<version>")
+    implementation("com.github.ArthurKun21:compose-overlay-window:<tag>")
 }
 ```
 
@@ -39,9 +39,11 @@ Add the overlay permission to your manifest:
 <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 ```
 
-Before calling `show()`, check permission with `checkOverlayPermission(context)` or `floatingWindow.isAvailable()`. If it is missing, open the system settings screen with `requestOverlayPermission(context)`.
+Before calling `show()`, check the permission with `checkOverlayPermission(context)` or `floatingWindow.isAvailable()`. If the permission is missing, open the system settings screen with `requestOverlayPermission(context)`.
 
 ## Quick start
+
+This activity creates a floating window with a draggable button:
 
 ```kotlin
 class MainActivity : AppCompatActivity() {
@@ -76,23 +78,23 @@ class MainActivity : AppCompatActivity() {
 
 ## How to read the docs
 
-- Start with the Usage page for setup, lifecycle, and window configuration.
-- Jump to Examples for activity overlays, service overlays, keyboard handling, and dialogs.
+- Start with Usage for setup, lifecycle, and window configuration.
+- Read Examples for activity windows, service windows, keyboard handling, and dialogs.
 - Use API Reference as a compact guide to the public classes and helpers.
 
 ## Samples in this repository
 
-The sample apps are small and map directly to the main library features:
+The sample apps demonstrate the main library features:
 
-- `samples/app-activity`: activity-owned floating action button and `SystemAlertDialog`.
-- `samples/keyboard-usage`: text input, focus handling, and keyboard-safe interaction sources.
-- `samples/fullscreen-dialog`: full-screen `SystemDialog` usage.
-- `samples/service-hilt`: service-owned overlay with dependency injection and persisted position.
+- `samples/app-activity`: an activity-owned floating button and a `SystemAlertDialog`.
+- `samples/keyboard-usage`: text input with the keyboard interaction sources.
+- `samples/fullscreen-dialog`: a full-screen `SystemDialog`.
+- `samples/service-hilt`: a service-owned floating window with dependency injection and a saved position.
 
 ## Acknowledgements
 
-The original implementation was inspired by the upstream project from only52607 and then adapted for this repository.
+only52607 built the upstream project that inspired this library. This repository adapts that implementation.
 
 ## License
 
-Apache License 2.0.
+This library uses the Apache License 2.0.

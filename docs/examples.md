@@ -1,10 +1,14 @@
 # Examples
 
-These examples mirror the sample apps in this repository and focus on the patterns you are most likely to reuse.
+These examples match the sample apps in this repository. They show the patterns you will reuse most often.
 
 ## Activity-owned overlay
 
-This is the smallest useful setup: create the window once, set content once, and toggle visibility from the activity.
+This is the smallest useful setup:
+
+1. Create the floating window once.
+2. Set the content once.
+3. Toggle visibility from the activity.
 
 ```kotlin
 class MainActivity : AppCompatActivity() {
@@ -41,11 +45,11 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
-Use this shape when the overlay is a companion to an activity screen and does not need to survive process-local navigation.
+Use this pattern when the floating window only needs to live as long as the activity. For a floating window that must live longer, see the service pattern below.
 
 ## Service-owned overlay
 
-For overlays that should keep running after an activity goes away, create the window in a `Service`.
+For floating windows that must keep running after an activity goes away, create the floating window in a `Service`.
 
 ```kotlin
 class MyService : Service() {
@@ -77,11 +81,11 @@ class MyService : Service() {
 }
 ```
 
-This is the right model for chat heads, quick tools, and utility overlays that need an independent lifecycle.
+Use this pattern for chat heads, quick tools, and other floating windows that need an independent lifecycle.
 
 ## Dialog from the overlay
 
-Use `SystemAlertDialog` when you want a Material-styled prompt above the overlay.
+Use `SystemAlertDialog` when you want a Material 3 alert dialog above the floating window.
 
 ```kotlin
 @Composable
@@ -111,7 +115,7 @@ fun FloatingScreen(vm: FloatingViewModel = viewModel()) {
 
 ## Full-screen custom dialog
 
-Use `SystemDialog` when the alert-dialog slot API is too restrictive.
+Use `SystemDialog` when you need full control over the dialog content.
 
 ```kotlin
 if (showingDialog) {
@@ -139,7 +143,7 @@ if (showingDialog) {
 
 ## Text input inside an overlay
 
-If your overlay contains `TextField` or `OutlinedTextField`, use the provided interaction source.
+If your floating window contains `TextField` or `OutlinedTextField`, use the provided interaction source.
 
 ```kotlin
 @Composable
@@ -156,11 +160,11 @@ fun OverlayInput() {
 }
 ```
 
-For a service-based overlay, switch to `rememberServiceFloatingWindowInteractionSource()`.
+For a floating window in a service, use `rememberServiceFloatingWindowInteractionSource()`.
 
 ## Persist window position
 
-The drag modifiers expose the current position through `onDrag`, so persisting coordinates is straightforward.
+The drag modifiers report the current position through `onDrag`. Save the coordinates in this callback.
 
 ```kotlin
 FloatingActionButton(
@@ -175,7 +179,7 @@ FloatingActionButton(
 }
 ```
 
-Restore those coordinates before showing the window again:
+Restore those coordinates before you show the floating window again:
 
 ```kotlin
 val overlay = ComposeFloatingWindow(applicationContext).apply {
@@ -185,4 +189,4 @@ val overlay = ComposeFloatingWindow(applicationContext).apply {
 }
 ```
 
-The `samples/service-hilt` module demonstrates the same idea with a repository-backed value.
+The `samples/service-hilt` module shows the same idea with a persistent data store.
