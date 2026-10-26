@@ -36,6 +36,10 @@ env:
   JAVA_DISTRO: 'temurin'
   GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx4g -XX:+UseParallelGC"'
 
+concurrency:
+  group: ${{ github.ref }}-build
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
 jobs:
   build-app:
     runs-on: ubuntu-latest
