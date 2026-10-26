@@ -1,0 +1,61 @@
+[project]
+site_name = "Compose Floating Window"
+site_url = "https://arthurkun21.github.io/compose-overlay-window"
+site_description = "Global Floating Window Framework based on Jetpack Compose"
+repo_name = "Compose Floating Window"
+repo_url = "https://github.com/ArthurKun21/compose-overlay-window"
+use_directory_urls = true
+
+[project.theme]
+name = "material"
+# Keeps the Material for MkDocs appearance (zensical's default is the new "modern" look)
+variant = "classic"
+features = [
+  "navigation.tabs",
+  "navigation.tabs.sticky",
+  "navigation.top",
+  "navigation.footer",
+  "navigation.sections",
+  "navigation.expand",
+  "navigation.path",
+  "navigation.tracking",
+  "toc.follow",
+  "toc.integrate",
+  "search.suggest",
+  "search.share",
+  "search.highlight",
+  "content.tabs.link",
+  "content.code.copy",
+]
+
+# Palette toggle for light mode
+[[project.theme.palette]]
+scheme = "default"
+primary = "red"
+toggle.icon = "material/brightness-7"
+toggle.name = "Switch to dark mode"
+
+# Palette toggle for dark mode
+[[project.theme.palette]]
+scheme = "slate"
+primary = "red"
+toggle.icon = "material/brightness-4"
+toggle.name = "Switch to light mode"
+
+[project.plugins]
+search = {}
+awesome-nav = {}
+tags = {}
+social = {}
+meta = {}
+
+[project.markdown_extensions]
+admonition = {}
+def_list = {}
+toc.permalink = true
+footnotes = {}
+tables = {}
+pymdownx.details = {}
+pymdownx.superfences = {}
+pymdownx.betterem = {}
+pymdownx.tasklist.custom_checkbox = true

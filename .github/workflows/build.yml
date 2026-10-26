@@ -2,29 +2,43 @@ name: build app
 
 on:
   pull_request:
-    paths-ignore:
-      - '.devcontainer/**'
-      - '.github/workflows/**'
-      - 'docs/**'
-      - '.idea/**'
-      - '.vscode/**'
-      - 'preview/**'
-      - '.editorconfig'
-      - '.gitignore'
-      - 'LICENSE'
-      - 'jitpack.yml'
-      - '**/*.md'
-      - 'renovate.json'
-      - 'FUNDING.yml'
-      - 'mkdocs.yaml'
-      - 'pyproject.toml'
-      - '.python-version'
+    paths:
+      - '**/*.kt'
+      - '**/*.kts'
+      - '**/*.java'
+      - '**/*.xml'
+      - '**/*.pro'
+      - 'gradle/**'
+      - 'build-logic/**'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - '.github/workflows/build.yml'
+  push:
+    branches:
+      - master
+    paths:
+      - '**/*.kt'
+      - '**/*.kts'
+      - '**/*.java'
+      - '**/*.xml'
+      - '**/*.pro'
+      - 'gradle/**'
+      - 'build-logic/**'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
 
 env:
   JAVA_VERSION: 17
   JAVA_DISTRO: 'temurin'
   GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx4g -XX:+UseParallelGC"'
+
+concurrency:
+  group: ${{ github.ref }}-build
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   build-app:
