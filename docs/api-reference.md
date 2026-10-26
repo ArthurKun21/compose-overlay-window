@@ -1,8 +1,8 @@
-# API Reference
+# API reference
 
 This page summarizes the public API exposed by the library module.
 
-## Window Types
+## Window types
 
 ### `ComposeFloatingWindow`
 
@@ -42,7 +42,7 @@ val overlay = ComposeServiceFloatingWindow(context = this)
 
 Use it when the overlay should survive beyond an activity and be controlled by a background component.
 
-## Permission Helpers
+## Permission helpers
 
 | API | Description |
 | --- | --- |
@@ -59,7 +59,7 @@ if (checkOverlayPermission(this)) {
 }
 ```
 
-## Drag And Window Access Helpers
+## Drag and window access helpers
 
 ### Composition locals
 
@@ -138,13 +138,13 @@ SystemDialog(
 | `usePlatformDefaultWidth` | Uses Android's platform dialog width when `true`. |
 | `decorFitsSystemWindows` | Controls `WindowCompat.setDecorFitsSystemWindows`. |
 
-## Display Metrics
+## Display metrics
 
 ### `DisplayHelper`
 
 `DisplayHelper.metrics` returns `DisplayMetrics` for the display currently used by the overlay. The window classes expose an instance through `display`, which is useful when computing coordinates relative to the visible screen.
 
-## Lifecycle Notes
+## Lifecycle notes
 
 - Call `setContent()` before `show()`.
 - Mutating `windowParams` while the overlay is visible requires `update()`.

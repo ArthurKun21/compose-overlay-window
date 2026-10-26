@@ -4,7 +4,7 @@ Compose Floating Window lets you render Jetpack Compose UI in a system overlay w
 
 ![Preview](assets/example.gif)
 
-## What It Gives You
+## What it gives you
 
 - `ComposeFloatingWindow` for overlays created from an activity or other app-owned component.
 - `ComposeServiceFloatingWindow` for overlays that live inside an Android `Service`.
@@ -22,16 +22,16 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven(url = "https://jitpack.io")
+        maven { url = uri("https://jitpack.io") }
     }
 }
 
 dependencies {
-    implementation("com.github.only52607:compose-floating-window:<version>")
+    implementation("com.github.ArthurKun21:compose-overlay-window:<version>")
 }
 ```
 
-## Required Permission
+## Required permission
 
 Add the overlay permission to your manifest:
 
@@ -41,7 +41,7 @@ Add the overlay permission to your manifest:
 
 Before calling `show()`, check permission with `checkOverlayPermission(context)` or `floatingWindow.isAvailable()`. If it is missing, open the system settings screen with `requestOverlayPermission(context)`.
 
-## Quick Start
+## Quick start
 
 ```kotlin
 class MainActivity : AppCompatActivity() {
@@ -74,13 +74,13 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
-## How To Read The Docs
+## How to read the docs
 
 - Start with the Usage page for setup, lifecycle, and window configuration.
 - Jump to Examples for activity overlays, service overlays, keyboard handling, and dialogs.
 - Use API Reference as a compact guide to the public classes and helpers.
 
-## Samples In This Repository
+## Samples in this repository
 
 The sample apps are small and map directly to the main library features:
 

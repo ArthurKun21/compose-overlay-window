@@ -7,7 +7,7 @@ This library has two primary entry points:
 
 Both classes share the same core behavior: set Compose content, show the overlay, update its layout when needed, hide it, and call `close()` when you are done.
 
-## 1. Add The Dependency
+## Add the dependency
 
 ```kotlin
 dependencyResolutionManagement {
@@ -23,7 +23,7 @@ dependencies {
 }
 ```
 
-## 2. Declare The Permission
+## Declare the permission
 
 ```xml
 <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -37,7 +37,7 @@ if (!checkOverlayPermission(this)) {
 }
 ```
 
-## 3. Create A Floating Window
+## Create a floating window
 
 Use the application context when possible to avoid leaking an activity.
 
@@ -56,7 +56,7 @@ private val floatingWindow by lazy {
 }
 ```
 
-## 4. Show And Hide It
+## Show and hide it
 
 `show()` requires content to be set first. If the permission is missing, the library will refuse to attach the window.
 
@@ -74,7 +74,7 @@ fun hideOverlay() {
 }
 ```
 
-## 5. Close It When Finished
+## Close it when finished
 
 `close()` is a terminal operation. It hides the overlay if needed, disposes the Compose composition, clears `ViewModel` state, and marks the instance destroyed.
 
@@ -87,7 +87,7 @@ override fun onDestroy() {
 
 After `close()`, do not call `show()` or `setContent()` on the same instance again. Create a new floating window instead.
 
-## Configure Position And Layout
+## Configure position and layout
 
 You can set the initial coordinates directly through `windowParams` before `show()`.
 
@@ -130,7 +130,7 @@ For service overlays, use `Modifier.dragServiceFloatingWindow()`.
 
 The drag modifiers clamp movement so the overlay stays within the visible display bounds reported by the window instance.
 
-## Access The Window From Compose
+## Access the window from Compose
 
 Inside `setContent`, the current floating window is available through a composition local.
 
@@ -144,7 +144,7 @@ fun OverlayBadge() {
 
 For service overlays, use `LocalServiceFloatingWindow.current`.
 
-## Text Input And Keyboard Handling
+## Text input and keyboard handling
 
 When your overlay contains text fields, pass the provided interaction source to input components so the library can coordinate focus and soft keyboard behavior correctly.
 
@@ -164,7 +164,7 @@ fun OverlayForm() {
 
 For service overlays, use `rememberServiceFloatingWindowInteractionSource()`.
 
-## Dialogs Inside Overlays
+## Dialogs inside overlays
 
 The library exposes overlay-safe dialog APIs:
 
@@ -185,7 +185,7 @@ if (showingDialog) {
 }
 ```
 
-## Activity Vs Service
+## Activity vs service
 
 Use `ComposeFloatingWindow` when the overlay belongs to the app UI lifecycle and can be created from an activity.
 

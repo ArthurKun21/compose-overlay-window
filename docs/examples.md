@@ -2,7 +2,7 @@
 
 These examples mirror the sample apps in this repository and focus on the patterns you are most likely to reuse.
 
-## Activity-Owned Overlay
+## Activity-owned overlay
 
 This is the smallest useful setup: create the window once, set content once, and toggle visibility from the activity.
 
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
 
 Use this shape when the overlay is a companion to an activity screen and does not need to survive process-local navigation.
 
-## Service-Owned Overlay
+## Service-owned overlay
 
 For overlays that should keep running after an activity goes away, create the window in a `Service`.
 
@@ -79,7 +79,7 @@ class MyService : Service() {
 
 This is the right model for chat heads, quick tools, and utility overlays that need an independent lifecycle.
 
-## Dialog From The Overlay
+## Dialog from the overlay
 
 Use `SystemAlertDialog` when you want a Material-styled prompt above the overlay.
 
@@ -109,7 +109,7 @@ fun FloatingScreen(vm: FloatingViewModel = viewModel()) {
 }
 ```
 
-## Full-Screen Custom Dialog
+## Full-screen custom dialog
 
 Use `SystemDialog` when the alert-dialog slot API is too restrictive.
 
@@ -137,7 +137,7 @@ if (showingDialog) {
 }
 ```
 
-## Text Input Inside An Overlay
+## Text input inside an overlay
 
 If your overlay contains `TextField` or `OutlinedTextField`, use the provided interaction source.
 
@@ -158,7 +158,7 @@ fun OverlayInput() {
 
 For a service-based overlay, switch to `rememberServiceFloatingWindowInteractionSource()`.
 
-## Persist Window Position
+## Persist window position
 
 The drag modifiers expose the current position through `onDrag`, so persisting coordinates is straightforward.
 
