@@ -2,18 +2,18 @@ name: Run Lint
 
 on:
   pull_request:
-    paths-ignore:
-      - '**/*.md'
-      - '**/*.txt'
-      - '.gitignore'
-      - 'LICENSE'
-      - 'docs/**'
-      - '.github/**'
-      - '!.github/workflows/**'
-      - 'renovate.json'
-      - '.devcontainer/**'
-      - 'docs/**'
-      - 'zensical.toml'
+    paths:
+      - '**/*.kt'
+      - '**/*.kts'
+      - '**/*.java'
+      - '**/*.xml'
+      - '**/*.pro'
+      - 'gradle/**'
+      - 'build-logic/**'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - '.github/workflows/lint.yml'
 
 env:
   JAVA_VERSION: 17
