@@ -55,7 +55,7 @@ jobs:
     # PRs are build-validated only; deploys happen on pushes to master and manual runs
     if: github.event_name != 'pull_request'
     needs: build-docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
