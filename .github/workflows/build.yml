@@ -16,7 +16,7 @@ on:
       - '**/*.md'
       - 'renovate.json'
       - 'FUNDING.yml'
-      - 'mkdocs.yaml'
+      - 'zensical.toml'
       - 'pyproject.toml'
       - '.python-version'
   workflow_dispatch:
