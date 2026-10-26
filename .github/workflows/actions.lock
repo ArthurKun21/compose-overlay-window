@@ -11,7 +11,7 @@ workflows:
         - 'actions/checkout@v7.0.1'
         - 'actions/configure-pages@v6.0.0'
         - 'actions/deploy-pages@v5.0.1'
-        - 'actions/setup-python@v6.2.0'
+        - 'actions/setup-python@v7.1.0'
         - 'actions/upload-pages-artifact@v5.0.0'
         - 'astral-sh/setup-uv@v8.1.0'
     '.github/workflows/lint.yml':
@@ -46,9 +46,9 @@ dependencies:
         commit: 'sha1-b843ebf9b913146b38da2eaa7aeddf76074ae1ad'
         owner_id: 44036562
         repo_id: 196057608
-    'actions/setup-python@v6.2.0':
-        ref: 'v6.2.0'
-        commit: 'sha1-a309ff8b426b58ec0e2a45f0f869d46889d02405'
+    'actions/setup-python@v7.1.0':
+        ref: 'v7.1.0'
+        commit: 'sha1-6d4fd22b20465ccc0f7354476588e8df7c9ca0e0'
         owner_id: 44036562
         repo_id: 192625525
     'actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f':
